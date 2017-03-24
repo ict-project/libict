@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Other
+.kdev4/**
+*.kdev4
+build/**
+source/git_version.h

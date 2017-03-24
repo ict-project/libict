@@ -1,0 +1,7 @@
+_OPTIONS_(std::string,string)
+_OPTIONS_(std::wstring,wstring)
+_OPTIONS_(int,Integer)
+_OPTIONS_(long int,lInteger)
+_OPTIONS_(long long int,llInteger)
+_OPTIONS_(long double,float)
+_OPTIONS_(bool,bool)
