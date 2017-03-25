@@ -112,13 +112,17 @@ private:
   shortMap_t shortMap;
   longMap_t longMap;
   optionConfig_t optionConfig;
+  void registerConfigNoValue(optionId_t id,option_v_none_t * target){
+    optionConfig[id].type=optionType_v_none;
+    optionConfig[id].target.v_none=target;
+    optionConfig[id].dictionary.d_none=nullptr;
+  }
   #define Options_registerConfig(prefix,name) \
     void registerConfig(optionId_t id,option_##prefix##_##name##_t * target=nullptr,const dictionary_##name##_t * dictionary=nullptr){ \
       optionConfig[id].type=optionType_##prefix##_##name; \
       optionConfig[id].target.prefix##_##name=target; \
       optionConfig[id].dictionary.d_##name=dictionary; \
     }
-  Options_registerConfig(v,none)
   #define _OPTIONS_(type,name) Options_registerConfig(v,name)
   #include "options.h.in"
   #undef _OPTIONS_
@@ -171,9 +175,62 @@ private:
   void internalError(const char * file,int line);
   std::wstring tolower(const std::wstring & input);
 public:
+  //! Konstruktor.
   Parser();
+  //! Strumień z ewentualnymi błędami.
   std::ostringstream errors;
+  //! 
+  //! Parsuje wejściowe parametry funkcji main().
+  //!
+  //! @param argc_in Liczba parametrów.
+  //! @param argv_in Tabela parametrów.
+  //! @return Wartości: 0 sukces, inne - błąd.
+  //! 
   int parse(int argc_in,const char **argv_in) noexcept;
+  //! 
+  //! Zwraca zestaw opcji (o tym samym działaniu) na podstawie jednej krótkiej opcji.
+  //!
+  //! @param shortOpt Krótka opcja do wyszukania.
+  //! @return Zestaw opcji (pusty jeśli nie znaleziono).
+  //! 
+  std::string getOptionDesc(const shortOption_t & shortOpt);
+  //! 
+  //! Zwraca zestaw opcji (o tym samym działaniu) na podstawie jednej długiej opcji.
+  //!
+  //! @param longOpt Dłyga opcja do wyszukania.
+  //! @return Zestaw opcji (pusty jeśli nie znaleziono).
+  //! 
+  std::string getOptionDesc(const longOption_t & longOpt);
+  template<typename shortOption,typename longOption> 
+    void registerOptNoValue(
+      const shortOption & shortOpt,
+      const longOption & longOpt,
+      option_v_none_t & target
+    ){
+      optionId_t id=optionConfig.size();
+      registerOption(id,shortOpt,longOpt);
+      registerConfigNoValue(id,&target);
+    }
+  template<typename shortOption> 
+    void registerShortOptNoValue(
+      const shortOption & shortOpt,
+      option_v_none_t & target
+    ){
+      const static longOptionList_t longOpt;
+      optionId_t id=optionConfig.size();
+      registerOption(id,shortOpt,longOpt);
+      registerConfigNoValue(id,&target);
+    }
+  template<typename longOption> 
+    void registerLongOptNoValue(
+      const longOption & longOpt,
+      option_v_none_t & target
+    ){
+      const static shortOptionList_t shortOpt;
+      optionId_t id=optionConfig.size();
+      registerOption(id,shortOpt,longOpt);
+      registerConfigNoValue(id,&target);
+    }
   template<typename shortOption,typename longOption,typename targetType> 
     void registerOpt(
       const shortOption & shortOpt,

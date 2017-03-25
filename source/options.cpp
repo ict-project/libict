@@ -85,7 +85,7 @@ std::string Parser::getOptionDesc(optionId_t id){
     if (first) {
       first=false;
     } else {
-      output+=L" ,";
+      output+=L", ";
     }
     output+=L"-";
     output+=it->first;
@@ -94,7 +94,7 @@ std::string Parser::getOptionDesc(optionId_t id){
     if (first) {
       first=false;
     } else {
-      output+=L" ,";
+      output+=L", ";
     }
     output+=L"--";
     output+=it->first;
@@ -216,7 +216,7 @@ int Parser::parseValue(std::wstring & input){
     errors<<
       _L_(en,"Unable to parse option value: ")<<
       _L_(pl,"Wystąpił problem przy parsowaniu wartości opcji: ")<<
-      getOptionDesc(currentId)<<
+      getOptionDesc(id)<<
     std::endl;
     return(1);
   }
@@ -226,18 +226,17 @@ int Parser::parseShort(shortOption_t input){
   if(shortMap.count(input)){
     optionId_t id(shortMap.at(input));
     if (optionConfig.count(id)){
-      if (optionConfig.at(id).type){
-        if (currentId==-1){
-          currentId=id;
-        } else {
-          errors<<
-            _L_(en,"Option value is missing: ")<<
-            _L_(pl,"Brak wartości opcji: ")<<
-            getOptionDesc(currentId)<<
-          std::endl;
-          return(4);
-        }
+      if (currentId==-1){
+        currentId=id;
       } else {
+        errors<<
+          _L_(en,"Option value is missing: ")<<
+          _L_(pl,"Brak wartości opcji: ")<<
+          getOptionDesc(currentId)<<
+        std::endl;
+        return(4);
+      }
+      if (!optionConfig.at(id).type){
         std::wstring in;
         parseValue(in);
       }
@@ -274,15 +273,14 @@ int Parser::parseLong(std::wstring & input){
   if(longMap.count(input)){
     optionId_t id(longMap.at(input));
     if (optionConfig.count(id)){
-      if (optionConfig.at(id).type){
-        if (currentId==-1){
-          currentId=id;
-          if (v!=std::string::npos) return(parseValue(value));
-        } else {
-          internalError(__FILE__,__LINE__);
-          return(-6);
-        }
+      if (currentId==-1){
+        currentId=id;
+        if (v!=std::string::npos) return(parseValue(value));
       } else {
+        internalError(__FILE__,__LINE__);
+        return(-6);
+      }
+      if (!optionConfig.at(id).type){
         std::wstring in;
         parseValue(in);
       }
@@ -304,6 +302,14 @@ int Parser::parseOther(std::wstring & input){
   if (otherId==-1) return(0);
   currentId=otherId;
   return(parseValue(input));
+}
+std::string Parser::getOptionDesc(const shortOption_t & shortOpt){
+  if (shortMap.count(shortOpt)) return(getOptionDesc(shortMap.at(shortOpt)));
+  return("");
+}
+std::string Parser::getOptionDesc(const longOption_t & longOpt){
+  if (longMap.count(longOpt)) return(getOptionDesc(longMap.at(longOpt)));
+  return("");
 }
 int Parser::parse(std::wstring & input){
   if (currentId!=-1) return(parseValue(input));
@@ -343,6 +349,14 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
         return(-2);
       }
     }
+    if (currentId!=-1){
+      errors<<
+        _L_(en,"Option value is missing: ")<<
+        _L_(pl,"Brak wartości opcji: ")<<
+        getOptionDesc(currentId)<<
+      std::endl;
+      return(5);
+    }
   } catch (...){
     internalError(__FILE__,__LINE__);
     return(-1);
@@ -358,11 +372,73 @@ REGISTER_TEST(options,tc1){
   int out=0;
   const char * input[]={"nic"};
   ict::options::Parser parser;
-  std::cout<<" Test funcji ict::options::Parser::parse()"<<std::endl;
-  if (out=parser.parse(1,input)){
+  std::cout<<" Test funkcji ict::options::Parser::parse()"<<std::endl;
+  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" out="<<out<<std::endl;
     return(-1);
+  }
+  return(0);
+}
+REGISTER_TEST(options,tc2){
+  int out=0;
+  const char * input[]={
+    "nic",
+    "nic1",
+    "nic2"
+  };
+  std::vector<std::string> output;
+  ict::options::Parser parser;
+  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOther(std::string)"<<std::endl;
+  parser.registerOther(output);
+  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" out="<<out<<std::endl;
+    return(-1);
+  }
+  if ((sizeof(input)/sizeof(*input)!=(output.size()+1))){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" output.size()="<<output.size()<<std::endl;
+    return(-1);
+  }
+  for (int k=1;k<(sizeof(input)/sizeof(*input));k++){
+    if (output[k-1]!=input[k]){
+      std::cout<<" Błąd!!!"<<std::endl;
+      std::cout<<" input[k]="<<input[k]<<std::endl;
+      std::cout<<" output[k-1]="<<output[k-1]<<std::endl;
+      return(-1);
+    }
+  }
+  return(0);
+}
+REGISTER_TEST(options,tc3){
+  int out=0;
+  const char * input[]={
+    "nic",
+    "nic1",
+    "nic2"
+  };
+  std::vector<std::wstring> output;
+  ict::options::Parser parser;
+  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOther(std::wstring)"<<std::endl;
+  parser.registerOther(output);
+  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" out="<<out<<std::endl;
+    return(-1);
+  }
+  if ((sizeof(input)/sizeof(*input)!=(output.size()+1))){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" output.size()="<<output.size()<<std::endl;
+    return(-1);
+  }
+  for (int k=1;k<(sizeof(input)/sizeof(*input));k++){
+    if (ict::utf8::get(output[k-1])!=input[k]){
+      std::cout<<" Błąd!!!"<<std::endl;
+      std::cout<<" input[k]="<<input[k]<<std::endl;
+      std::wcout<<L" output[k-1]="<<output[k-1]<<std::endl;
+      return(-1);
+    }
   }
   return(0);
 }
