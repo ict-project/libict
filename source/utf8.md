@@ -72,6 +72,6 @@ An example of a getting an `std::string` (with *UTF8* encoding):
 }
 ```
 
-### Credits
+## Credits
 
 Module `ict::utf8` is based on __Nemanja Trifunovic__ code ([see](http://utfcpp.sourceforge.net/)).
