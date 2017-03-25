@@ -18,7 +18,7 @@ The `ict::utf8::transfer()` functions *transfer* characters from an input (first
 
 An example of a *transfer* from  `std::string` (with *UTF8* encoding) to `std::wstring`:
 
-```
+```c++
 {
   std::string input("Pchnąć w tę łódź jeża lub ośm skrzyń fig.");
   std::wstring output(L"Pójdźże, kiń tę chmurność w głąb flaszy!");
@@ -31,7 +31,7 @@ An example of a *transfer* from  `std::string` (with *UTF8* encoding) to `std::w
 
 An example of a *transfer* from  `std::wstring` to `std::string` (with *UTF8* encoding):
 
-```
+```c++
 {
   std::wstring input(L"Pójdźże, kiń tę chmurność w głąb flaszy!");
   std::string output("Pchnąć w tę łódź jeża lub ośm skrzyń fig.");
@@ -50,7 +50,7 @@ The `ict::utf8::get()` functions just return a converted string (from a given in
 
 An example of a getting an `std::wstring`:
 
-```
+```c++
 {
   std::string input("Pchnąć w tę łódź jeża lub ośm skrzyń fig.");
   std::wstring output=ict::utf8::get(input);
@@ -62,7 +62,7 @@ An example of a getting an `std::wstring`:
 
 An example of a getting an `std::string` (with *UTF8* encoding):
 
-```
+```c++
 {
   std::wstring input(L"Pójdźże, kiń tę chmurność w głąb flaszy!");
   std::string output=ict::utf8::transfer(input);
