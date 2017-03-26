@@ -442,5 +442,70 @@ REGISTER_TEST(options,tc3){
   }
   return(0);
 }
+REGISTER_TEST(options,tc4){
+  int out=0;
+  const char * input[]={
+    "nic",
+    "-nic",
+    "--nic"
+  };
+  ict::options::option_v_none_t n=0,i=0,c=0;
+  ict::options::Parser parser;
+  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOptNoValue()"<<std::endl;
+  parser.registerOptNoValue(L'n',ict::options::longOptionList_t({L"nic"}),n);
+  parser.registerOptNoValue(ict::options::shortOptionList_t({L'i'}),L"ic",i);
+  parser.registerOptNoValue(L'c',L"c",c);
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" out="<<out<<std::endl;
+    return(-1);
+  }
+  if (n!=2){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" n="<<n<<std::endl;
+    return(-1);
+  }
+  if (i!=1){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" i="<<i<<std::endl;
+    return(-1);
+  }
+  if (c!=1){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" c="<<c<<std::endl;
+    return(-1);
+  }
+  return(0);
+}
+REGISTER_TEST(options,tc5){
+  int out=0;
+  const char * input[]={
+    "nic",
+    "-n",
+    "20",
+    "--nic=60"
+  };
+  ict::options::option_v_Integer_t n=0,nic=0;
+  ict::options::Parser parser;
+  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOptNoValue()"<<std::endl;
+  parser.registerOpt(L'n',ict::options::longOptionList_t({L"ic"}),n);
+  parser.registerOpt(ict::options::shortOptionList_t({L'i'}),L"nic",nic);
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" out="<<out<<std::endl;
+    return(-1);
+  }
+  if (n!=20){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" n="<<n<<std::endl;
+    return(-1);
+  }
+  if (nic!=60){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" nic="<<nic<<std::endl;
+    return(-1);
+  }
+  return(0);
+}
 #endif
 //===========================================
