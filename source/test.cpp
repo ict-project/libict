@@ -41,9 +41,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace test {
 //===========================================
-std::vector<TC*> TC::list;
+std::vector<TC*> & TC::getList(){
+  static std::vector<TC*> list;
+  return(list);
+}
 TC::TC(const tag_list_t & tags_in,test_fun_t fun_in,const char * file_in,int line_in):tags(tags_in),fun(fun_in),file(file_in),line(line_in){
-  list.push_back(this);
+  getList().push_back(this);
 }
 bool TC::testTags(const tag_list_t & tags_in) const{
   for (const std::string & in : tags_in) {
@@ -85,7 +88,7 @@ int TC::runThis(const tag_list_t & tags_in) const{
   return(0);
 }
 int TC::run(const tag_list_t & tags_in){
-  for (const TC * tc : list) {
+  for (const TC * tc : getList()) {
     int out=tc->runThis(tags_in);
     if (out) return(out);
   }
