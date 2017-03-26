@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace ict { namespace test {
 //===========================================
 std::vector<TC*> TC::list;
-TC::TC(const tag_list_t & tags_in,test_fun_t fun_in,const char * file_in,int line_in):tags(tags_in),fun(fun_in),file(file),line(line){
+TC::TC(const tag_list_t & tags_in,test_fun_t fun_in,const char * file_in,int line_in):tags(tags_in),fun(fun_in),file(file_in),line(line_in){
   list.push_back(this);
 }
 bool TC::testTags(const tag_list_t & tags_in) const{

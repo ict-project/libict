@@ -373,7 +373,7 @@ REGISTER_TEST(options,tc1){
   const char * input[]={"nic"};
   ict::options::Parser parser;
   std::cout<<" Test funkcji ict::options::Parser::parse()"<<std::endl;
-  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" out="<<out<<std::endl;
     return(-1);
@@ -391,7 +391,7 @@ REGISTER_TEST(options,tc2){
   ict::options::Parser parser;
   std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOther(std::string)"<<std::endl;
   parser.registerOther(output);
-  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" out="<<out<<std::endl;
     return(-1);
@@ -422,7 +422,7 @@ REGISTER_TEST(options,tc3){
   ict::options::Parser parser;
   std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOther(std::wstring)"<<std::endl;
   parser.registerOther(output);
-  if (out=parser.parse(sizeof(input)/sizeof(*input),input)){
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" out="<<out<<std::endl;
     return(-1);
