@@ -56,7 +56,7 @@ typedef std::vector<std::wstring> test_wstring_t;
 //===========================================
 class TC {
 private:
-  static std::vector<TC*> list;
+  static std::vector<TC*> & getList();
   const tag_list_t tags;
   test_fun_t fun;
   const char * file;
