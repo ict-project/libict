@@ -130,10 +130,17 @@ option_v_llInteger_t Parser::parseValue_llInteger(std::wstring & input,const dic
     return(output);
   }
 }
-option_v_float_t Parser::parseValue_float(std::wstring & input,const dictionary_float_t * dictionary){
+option_v_Float_t Parser::parseValue_Float(std::wstring & input,const dictionary_Float_t * dictionary){
   if (dictionary)  if (dictionary->count(input)) return(dictionary->at(input));
   {
-    option_v_float_t output=std::stold(input);
+    option_v_Float_t output=std::stod(input);
+    return(output);
+  }
+}
+option_v_lFloat_t Parser::parseValue_lFloat(std::wstring & input,const dictionary_lFloat_t * dictionary){
+  if (dictionary)  if (dictionary->count(input)) return(dictionary->at(input));
+  {
+    option_v_lFloat_t output=std::stold(input);
     return(output);
   }
 }
@@ -503,6 +510,84 @@ REGISTER_TEST(options,tc5){
   if (nic!=60){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" nic="<<nic<<std::endl;
+    return(-1);
+  }
+  return(0);
+}
+REGISTER_TEST(options,tc6){
+  int out=0;
+  const char * input[]={
+    "nic",
+    "-n",
+    "20",
+    "--integer",
+    "101",
+    "niiiic0",
+    "--nic=60",
+    "--float=50.989",
+    "niiiic1",
+    "--integer=99",
+    "--float=5.88"
+  };
+  ict::options::option_v_Integer_t n=0,nic=0;
+  std::vector<std::string> output;
+  std::vector<int> integer_opt;
+  long double float_opt;
+  ict::options::Parser parser;
+  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOptNoValue()"<<std::endl;
+  parser.registerOpt(L'n',ict::options::longOptionList_t({L"ic"}),n);
+  parser.registerOpt(ict::options::shortOptionList_t({L'i'}),L"nic",nic);
+  parser.registerLongOpt(L"integer",integer_opt);
+  parser.registerLongOpt(L"float",float_opt);
+  parser.registerOther(output);
+  if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" out="<<out<<std::endl;
+    return(-1);
+  }
+  if (n!=20){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" n="<<n<<std::endl;
+    return(-1);
+  }
+  if (nic!=60){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" nic="<<nic<<std::endl;
+    return(-1);
+  }
+  if (output.size()!=2){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" output.size()="<<output.size()<<std::endl;
+    return(-1);
+  }
+  if (output.at(0)!="niiiic0"){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" output.at(0)="<<output.at(0)<<std::endl;
+    return(-1);
+  }
+  if (output.at(1)!="niiiic1"){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" output.at(1)="<<output.at(1)<<std::endl;
+    return(-1);
+  }
+  if (integer_opt.size()!=2){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" integer_opt.size()="<<integer_opt.size()<<std::endl;
+    return(-1);
+  }
+  if (integer_opt.at(0)!=101){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" integer_opt.at(0)="<<integer_opt.at(0)<<std::endl;
+    return(-1);
+  }
+  if (integer_opt.at(1)!=99){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" integer_opt.at(1)="<<integer_opt.at(1)<<std::endl;
+    return(-1);
+  }
+  if (float_opt*1000!=5880){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" float_opt="<<float_opt<<std::endl;
     return(-1);
   }
   return(0);
