@@ -160,7 +160,8 @@ ict::options::option_v_none_t print_help=0;
 //=================================================
 namespace options {
 //=================================================
-void config(ict::options::Parser & parser,bool config=true){
+void config(bool config=true){
+  ict::options::Parser & parser(ict::options::getParser());
   if (config) {
     parser.registerOther(tag_list);
   } else {
@@ -178,15 +179,14 @@ void config(ict::options::Parser & parser,bool config=true){
 }
 int parser(int argc,const char **argv){
   int out=0;
-  ict::options::Parser parser;
-  config(parser);
-  out=parser.parse(argc,argv);
+  config();
+  out=ict::options::getParser().parse(argc,argv);
   if (out) {
-    std::cerr<<parser.errors.str()<<std::endl;
+    std::cerr<<ict::options::getParser().errors.str()<<std::endl;
     return(out);
   }
   if (print_help){
-    config(parser,false);
+    config(false);
     return(1);
   }
   return(out);
@@ -195,6 +195,8 @@ int parser(int argc,const char **argv){
 }
 //=================================================
 int main(int argc,const char **argv){
+  //std::string locale(setlocale(LC_ALL,std::getenv("LANG")));
+  std::string locale(setlocale(LC_ALL,"C"));
   int out=options::parser(argc,argv);
   if (out) return(out);
   out=ict::test::TC::run(tag_list);

@@ -64,7 +64,7 @@ typedef wchar_t        shortOption_t;  // Krótka nazwa opcji.
 typedef std::wstring   longOption_t;   // Długa nazwa opcji.
 typedef std::vector<shortOption_t> shortOptionList_t;  // Lista krótkich nazw opcji.
 typedef std::vector<longOption_t>  longOptionList_t;   // Lista długich nazw opcji.
-
+//===========================================
 //! Obsługuje opcje (parametry z funkcji ::main(int argc, char **argv)).
 class Parser{
 private:
@@ -303,6 +303,7 @@ public:
       registerConfig(otherId,&target);
     }
 };
+Parser & getParser();
 //============================================
 } }
 //============================================

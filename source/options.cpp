@@ -371,6 +371,10 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
   return(out);
 }
 #undef _L_
+Parser & getParser(){
+  static Parser parser;
+  return(parser);
+}
 //===========================================
 } }
 //===========================================
@@ -533,8 +537,9 @@ REGISTER_TEST(options,tc6){
   std::vector<std::string> output;
   std::vector<int> integer_opt;
   long double float_opt;
+  
   ict::options::Parser parser;
-  std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOptNoValue()"<<std::endl;
+  std::cout<<" Test funkcji ict::options::Parser::parse(), ict::options::Parser::registerOpt(), ict::options::Parser::registerLongOpt(), ict::options::Parser::registerOther()"<<std::endl;
   parser.registerOpt(L'n',ict::options::longOptionList_t({L"ic"}),n);
   parser.registerOpt(ict::options::shortOptionList_t({L'i'}),L"nic",nic);
   parser.registerLongOpt(L"integer",integer_opt);
