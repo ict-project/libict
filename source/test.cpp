@@ -158,46 +158,27 @@ const test_wstring_t test_wstring({
 ict::test::tag_list_t tag_list;
 ict::options::option_v_none_t print_help=0;
 //=================================================
-namespace options {
-//=================================================
-void config(bool config=true){
-  ict::options::Parser & parser(ict::options::getParser());
+OPTIONS_CONFIG(test){
   if (config) {
     parser.registerOther(tag_list);
   } else {
-    std::cerr<<"Usage: "<<std::endl;
-    std::cerr<<" libict-test tag1 tag2 tag3"<<std::endl;
-    std::cerr<<" libict-test -h"<<std::endl;
-    std::cerr<<std::endl;
-    std::cerr<<"Options: "<<std::endl;
+    parser.errors<<"Usage: "<<std::endl;
+    parser.errors<<" libict-test tag1 tag2 tag3"<<std::endl;
+    parser.errors<<" libict-test -h"<<std::endl;
+    parser.errors<<std::endl;
+    parser.errors<<"Options: "<<std::endl;
   }
   if (config) {
     parser.registerOptNoValue(L'h',L"help",print_help);
   } else {
-    std::cerr<<" "<<parser.getOptionDesc(L'h')<<" - print help."<<std::endl;
+    parser.errors<<" "<<parser.getOptionDesc(L'h')<<" - print help."<<std::endl;
   }
-}
-int parser(int argc,const char **argv){
-  int out=0;
-  config();
-  out=ict::options::getParser().parse(argc,argv);
-  if (out) {
-    std::cerr<<ict::options::getParser().errors.str()<<std::endl;
-    return(out);
-  }
-  if (print_help){
-    config(false);
-    return(1);
-  }
-  return(out);
-}
-//=================================================
 }
 //=================================================
 int main(int argc,const char **argv){
   //std::string locale(setlocale(LC_ALL,std::getenv("LANG")));
   std::string locale(setlocale(LC_ALL,"C"));
-  int out=options::parser(argc,argv);
+  int out=OPTIONS_PARSE(argc,argv,std::cerr);
   if (out) return(out);
   out=ict::test::TC::run(tag_list);
   return(out);

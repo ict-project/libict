@@ -45,6 +45,9 @@ namespace ict { namespace options {
 //===========================================
 #define _L_(language,string) ((optionLang_##language==lang)?(string):"")
 Parser::Parser():lang(optionLang_en){
+
+}
+void Parser::setLang(){
   static const std::string locale(setlocale(LC_ALL,NULL));
   static const langMap_string_t langMap={
     {"en",optionLang_en},
@@ -53,6 +56,9 @@ Parser::Parser():lang(optionLang_en){
   for (langMap_string_t::const_iterator it=langMap.cbegin();it!=langMap.cend();++it){
     if (locale.find(it->first)==0) lang=it->second;
   }
+}
+void Parser::execConfig(bool config){
+   for (config_t & config : configList) if (config) config(*this,config);
 }
 void Parser::internalError(const char * file,int line){
   errors<<"Internal error ("<<file<<":"<<line<<")"<<std::endl;
@@ -346,11 +352,16 @@ int Parser::parse(std::wstring & input){
 int Parser::parse(int argc_in,const char **argv_in) noexcept {
   int out=0;
   try {
+    setLang();
+    execConfig(true);
     for (int k=1;k<argc_in;k++){
       if (argv_in[k]!=NULL) {
         std::wstring arg(ict::utf8::get(argv_in[k]));
         out=parse(arg);
-        if (out) return(out);
+        if (out) {
+          execConfig(false);
+          return(out);
+        }
       } else {
         internalError(__FILE__,__LINE__);
         return(-2);
@@ -362,18 +373,33 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
         _L_(pl,"Brak wartości opcji: ")<<
         getOptionDesc(currentId)<<
       std::endl;
+      execConfig(false);
       return(5);
     }
   } catch (...){
     internalError(__FILE__,__LINE__);
     return(-1);
   }
-  return(out);
+  return(0);
+}
+void Parser::registerConfig(config_t config){
+  if (config) configList.push_back(config);
 }
 #undef _L_
-Parser & getParser(){
+Parser & Config::getParser(){
   static Parser parser;
   return(parser);
+}
+Config::Config(config_t config){
+  getParser().registerConfig(config);
+}
+int Config::parse(int argc_in,const char **argv_in,std::ostream & output) noexcept {
+  getParser().errors.str("");
+  {
+    int out=getParser().parse(argc_in,argv_in);
+    output<<getParser().errors.str();
+    return(out);
+  }
 }
 //===========================================
 } }

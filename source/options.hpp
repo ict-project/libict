@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace options {
 //===========================================
+class Parser;
+typedef void (*config_t)(Parser & parser,bool config);
 typedef std::size_t     option_v_none_t;           // Warość opcji bez parametru (liczba wystąpień).
 // Warość opcji z parametrem
 #define _OPTIONS_(type,name) typedef type option_v_##name##_t;
@@ -105,6 +107,7 @@ private:
   typedef std::map<optionId_t,optionPtr_t> optionConfig_t;
   typedef std::map<std::string,optionLang_t>  langMap_string_t;
   typedef std::map<std::wstring,optionLang_t>  langMap_wstring_t;
+  typedef std::vector<config_t>  configList_t;
 private:
   optionId_t currentId=-1;
   optionId_t otherId=-1;
@@ -112,6 +115,9 @@ private:
   shortMap_t shortMap;
   longMap_t longMap;
   optionConfig_t optionConfig;
+  configList_t configList;
+  void setLang();
+  void execConfig(bool config);
   void registerConfigNoValue(optionId_t id,option_v_none_t * target){
     optionConfig[id].type=optionType_v_none;
     optionConfig[id].target.v_none=target;
@@ -302,8 +308,30 @@ public:
       otherId=optionConfig.size();
       registerConfig(otherId,&target);
     }
+  void registerConfig(config_t config);
 };
-Parser & getParser();
+class Config{
+private:
+  static Parser & getParser();
+public:
+  Config(config_t config);
+  //! 
+  //! Parsuje wejściowe parametry funkcji main().
+  //!
+  //! @param argc_in Liczba parametrów.
+  //! @param argv_in Tabela parametrów.
+  //! @return Wartości: 0 sukces, inne - błąd.
+  //! 
+  static int parse(int argc_in,const char **argv_in,std::ostream & output) noexcept;
+};
+//============================================
+#define OPTIONS_CONFIG(name) \
+  void options_config_fun_##name(ict::options::Parser & parser,bool config); \
+  ict::options::Config  option_config_obj_##name(options_config_fun_##name); \
+  void options_config_fun_##name(ict::options::Parser & parser,bool config)
+
+#define OPTIONS_PARSE(argc,argv,output) \
+  ict::options::Config::parse(argc,argv,output)
 //============================================
 } }
 //============================================
