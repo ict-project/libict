@@ -107,7 +107,7 @@ private:
   typedef std::map<optionId_t,optionPtr_t> optionConfig_t;
   typedef std::map<std::string,optionLang_t>  langMap_string_t;
   typedef std::map<std::wstring,optionLang_t>  langMap_wstring_t;
-  typedef std::vector<config_t>  configList_t;
+  typedef std::map<int,std::vector<config_t>>  configList_t;
 private:
   optionId_t currentId=-1;
   optionId_t otherId=-1;
@@ -308,13 +308,14 @@ public:
       otherId=optionConfig.size();
       registerConfig(otherId,&target);
     }
-  void registerConfig(config_t config);
+  void registerConfig(int priority,config_t config);
+  void help() noexcept;
 };
 class Config{
 private:
   static Parser & getParser();
 public:
-  Config(config_t config);
+  Config(int priority,config_t config);
   //! 
   //! Parsuje wejściowe parametry funkcji main().
   //!
@@ -323,15 +324,19 @@ public:
   //! @return Wartości: 0 sukces, inne - błąd.
   //! 
   static int parse(int argc_in,const char **argv_in,std::ostream & output) noexcept;
+  static void help(std::ostream & output) noexcept;
 };
 //============================================
-#define OPTIONS_CONFIG(name) \
+#define OPTIONS_CONFIG(name,priority) \
   void options_config_fun_##name(ict::options::Parser & parser,bool config); \
-  ict::options::Config  option_config_obj_##name(options_config_fun_##name); \
+  ict::options::Config  option_config_obj_##name(priority,options_config_fun_##name); \
   void options_config_fun_##name(ict::options::Parser & parser,bool config)
 
 #define OPTIONS_PARSE(argc,argv,output) \
   ict::options::Config::parse(argc,argv,output)
+
+#define OPTIONS_HELP(output) \
+  ict::options::Config::help(output)
 //============================================
 } }
 //============================================

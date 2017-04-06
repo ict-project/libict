@@ -58,7 +58,8 @@ void Parser::setLang(){
   }
 }
 void Parser::execConfig(bool config){
-   for (config_t & config : configList) if (config) config(*this,config);
+  for (configList_t::iterator it=configList.begin();it!=configList.end();++it)
+    for (config_t & c : it->second) if (c) c(*this,config);
 }
 void Parser::internalError(const char * file,int line){
   errors<<"Internal error ("<<file<<":"<<line<<")"<<std::endl;
@@ -376,22 +377,32 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
       execConfig(false);
       return(5);
     }
-  } catch (...){
+  } catch (std::exception & e){
     internalError(__FILE__,__LINE__);
+    errors<<e.what()<<std::endl;
     return(-1);
   }
   return(0);
 }
-void Parser::registerConfig(config_t config){
-  if (config) configList.push_back(config);
+void Parser::registerConfig(int priority,config_t config){
+  if (config) configList[priority].push_back(config);
+}
+void Parser::help() noexcept{
+  try {
+    setLang();
+    execConfig(false);
+  } catch (std::exception & e){
+    internalError(__FILE__,__LINE__);
+    errors<<e.what()<<std::endl;
+  }
 }
 #undef _L_
 Parser & Config::getParser(){
   static Parser parser;
   return(parser);
 }
-Config::Config(config_t config){
-  getParser().registerConfig(config);
+Config::Config(int priority,config_t config){
+  getParser().registerConfig(priority,config);
 }
 int Config::parse(int argc_in,const char **argv_in,std::ostream & output) noexcept {
   getParser().errors.str("");
@@ -400,6 +411,11 @@ int Config::parse(int argc_in,const char **argv_in,std::ostream & output) noexce
     output<<getParser().errors.str();
     return(out);
   }
+}
+void Config::help(std::ostream & output) noexcept{
+  getParser().errors.str("");
+  getParser().help();
+  output<<getParser().errors.str();
 }
 //===========================================
 } }

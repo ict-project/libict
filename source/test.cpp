@@ -158,7 +158,13 @@ const test_wstring_t test_wstring({
 ict::test::tag_list_t tag_list;
 ict::options::option_v_none_t print_help=0;
 //=================================================
-OPTIONS_CONFIG(test){
+OPTIONS_CONFIG(test1,1){
+  if (config) {
+  } else {
+    parser.errors<<std::endl<<"Copyright: ICT-Project Mariusz Ornowski"<<std::endl;
+  }
+}
+OPTIONS_CONFIG(test0,0){
   if (config) {
     parser.registerOther(tag_list);
   } else {
@@ -180,6 +186,10 @@ int main(int argc,const char **argv){
   std::string locale(setlocale(LC_ALL,"C"));
   int out=OPTIONS_PARSE(argc,argv,std::cerr);
   if (out) return(out);
+  if (print_help){
+    OPTIONS_HELP(std::cerr);
+    return(0);
+  }
   out=ict::test::TC::run(tag_list);
   return(out);
 }
