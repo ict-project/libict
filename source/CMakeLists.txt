@@ -4,7 +4,7 @@ project(libict)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_SOURCE_FILES utf8.cpp options.cpp base64.cpp)
+set(CMAKE_SOURCE_FILES utf8.cpp options.cpp base64.cpp time.cpp logger.cpp)
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
 set_target_properties(ict-static  PROPERTIES OUTPUT_NAME ict)

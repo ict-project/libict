@@ -1,5 +1,5 @@
 //! @file
-//! @brief libict - Header file.
+//! @brief Global header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2017
@@ -33,13 +33,20 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
-#ifndef _LIBICT_HEADER
-#define _LIBICT_HEADER
+#ifndef _GLOBAL_HEADER
+#define _GLOBAL_HEADER
 //============================================
-#include "base64.hpp"
-#include "utf8.hpp"
-#include "options.hpp"
-#include "time.hpp"
-#include "logger.hpp"
+#include <sys/types.h>
+//============================================
+#define __WIDEN2(x) L ## x
+#define __WIDEN(x) __WIDEN2(x)
+#define __WFILE__ __WIDEN(__FILE__)
+#define __WPRETTY_FUNCTION__ __WIDEN(__PRETTY_FUNCTION__)
+//============================================
+namespace ict { namespace global {
+//===========================================
+
+//===========================================
+} }
 //===========================================
 #endif
