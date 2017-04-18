@@ -65,7 +65,8 @@ add_test(NAME ict-options-tc4 WORKING_DIRECTORY ${CMAKE_CURRENT_TESTS_DIR}  COMM
 add_test(NAME ict-options-tc5 WORKING_DIRECTORY ${CMAKE_CURRENT_TESTS_DIR}  COMMAND ${CMAKE_CURRENT_TEST_TOOL} ict options tc5)
 add_test(NAME ict-options-tc6 WORKING_DIRECTORY ${CMAKE_CURRENT_TESTS_DIR}  COMMAND ${CMAKE_CURRENT_TEST_TOOL} ict options tc6)
 ################################################################
-set(CPACK_GENERATOR "TZ;TGZ;STGZ;DEB;RPM")
+#set(CPACK_GENERATOR "TZ;TGZ;STGZ;DEB;RPM") # Linux
+#set(CPACK_GENERATOR "TZ;TGZ;STGZ")         # MacOS
 
 set(CPACK_PACKAGE_NAME "libict")
 set(CPACK_PACKAGE_VENDOR "ict-project.pl")

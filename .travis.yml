@@ -26,4 +26,6 @@ script:
   - gcc -v && g++ -v && cmake --version
   - cd build
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild -configuration Release; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make test; make package; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ];   then cpack; fi
