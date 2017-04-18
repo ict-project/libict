@@ -1,4 +1,4 @@
-# libict
+# libict [![Build Status](https://travis-ci.org/ict-project/libict.svg?branch=master)](https://travis-ci.org/ict-project/libict)
 C++11 Library with common application modules.
 
 ## Available modules

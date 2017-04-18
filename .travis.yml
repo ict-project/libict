@@ -19,10 +19,11 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./build.linux.bsh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then ./build.xcode.bsh; fi
 script:
-  - ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-  - ln -s /usr/bin/g++-6 /usr/local/bin/g++
+  # - ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+  # - ln -s /usr/bin/g++-6 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-6
   - export CXX=/usr/bin/g++-6
   - gcc -v && g++ -v && cmake --version
   - cd build
-  - make
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild; fi
