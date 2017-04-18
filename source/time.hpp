@@ -109,8 +109,12 @@ namespace ict { namespace time {
     int isdst=0;
     // Seconds east of UTC 
     long gmtoff;
-    // Timezone abbreviation 
-    const char *zone;
+    // Timezone abbreviation
+    #ifdef __APPLE__
+     char *zone;
+    #else
+     const char *zone;
+    #endif
     // Ustawia punkt w czasie na teraz (czas lokalny).
     void setLocalTime(){std::lock_guard<std::mutex> lock(mutex);setTime(true);}
     // Ustawia punkt w czasie na teraz (czas uniwersalny).

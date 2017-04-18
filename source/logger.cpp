@@ -213,7 +213,7 @@ namespace ict { namespace logger {
       TRY_BEGIN
       std::wstring l_in(in);
       std::string l_out;
-      ict:utf8::transfer(l_in,l_out);
+        ict::utf8::transfer(l_in,l_out);
       log_syslog_out(severity,l_out);
       TRY_END
     }
@@ -418,21 +418,25 @@ namespace ict { namespace logger {
         newline=true;
         if (log_line.buffered){//Jeśli zapis jest buforowany.
           const static std::size_t max(100);//Maksymalny rozmiar bufora.
-          if (log_buffer) if (log_buffer->size()<max){//Jeśli mniejszy, niż maksymalny rozmiar.
-            log_buffer->push_back(log_line);//Dodaj do bufora.
-          } else if (log_buffer->size()==max) {
-            log_line_t<char> log_warn;
-            log_warn.buffered=true;
-            log_warn.line=__FILE__;
-            log_warn.line+=" (";
-            log_warn.line+=__PRETTY_FUNCTION__;
-            log_warn.line+=") ";
-            log_warn.line+="Bufor loggera osiągnął maksymalny rozmiar!";
-            log_warn.severity=warning;
-            output::log_stream_out(log_warn);//Zapisz w strumieniach wyjściowych.
-            output::log_syslog_out(log_warn);//Zapisz w syslog.
-            log_buffer->push_back(log_line);//Dodaj do bufora.
-          }
+            if (log_buffer){
+              if (log_buffer->size()<max){//Jeśli mniejszy, niż maksymalny rozmiar.
+                log_buffer->push_back(log_line);//Dodaj do bufora.
+              } else {
+                  if (log_buffer->size()==max) {
+                    log_line_t<char> log_warn;
+                    log_warn.buffered=true;
+                    log_warn.line=__FILE__;
+                    log_warn.line+=" (";
+                    log_warn.line+=__PRETTY_FUNCTION__;
+                    log_warn.line+=") ";
+                    log_warn.line+="Bufor loggera osiągnął maksymalny rozmiar!";
+                    log_warn.severity=warning;
+                    output::log_stream_out(log_warn);//Zapisz w strumieniach wyjściowych.
+                    output::log_syslog_out(log_warn);//Zapisz w syslog.
+                    log_buffer->push_back(log_line);//Dodaj do bufora.
+                  }
+              }
+            }
         } else {//Jeśli zapis nie jest buforowany.
           output::log_stream_out(log_line);//Zapisz w strumieniach wyjściowych.
           output::log_syslog_out(log_line);//Zapisz w syslog.
@@ -705,6 +709,7 @@ namespace ict { namespace logger {
     TRY_BEGIN
     return(ict::utf8::get(input));
     TRY_END
+    return(L"");
   }
 //===========================================
 } }

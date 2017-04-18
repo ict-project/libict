@@ -42,7 +42,7 @@ namespace ict { namespace time {
 //===========================================
   void TimeInfo::setTime(bool local){
     time_t rawtime;
-    struct tm * timeinfo;
+    //struct tm * timeinfo;
     struct timeval tv;
     struct timezone tz;
     gettimeofday(&tv,&tz);
@@ -75,7 +75,7 @@ namespace ict { namespace time {
   }
   void TimeInfo::setTime(unix_float_t time,bool local){
     unix_int_t t=time*1000;
-    int m=t%1000;
+    //int m=t%1000;
     t/=1000;
     setTime(t,local);
     this->msec=t;
