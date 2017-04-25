@@ -47,6 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include "syslog.h"
 #include "utf8.hpp"
+#include "os.hpp"
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
@@ -705,6 +706,19 @@ namespace ict { namespace logger {
     get_map_wchar().clear();
     TRY_END
   }
+  std::string & getBaseDir(){
+    static std::string base_dir(ict::os::getCurrentDir());
+    return(base_dir);
+  }
+  void setBaseDir(const std::string & file){
+    getBaseDir()=ict::os::getOnlyDir(file);
+  }
+  std::string getFileName(const std::string & file){
+    return(ict::os::getRelativePath(getBaseDir(),file));
+  }
+  std::wstring getFileName(const std::wstring & file){
+    return(ict::utf8::get(ict::os::getRelativePath(getBaseDir(),ict::utf8::get(file))));
+  }
   std::wstring pretty_function(const std::string & input){
     TRY_BEGIN
     return(ict::utf8::get(input));
@@ -717,6 +731,7 @@ namespace ict { namespace logger {
 #ifdef ENABLE_TESTING
 REGISTER_TEST(logger,tc1){
   LOGGER_LAYER;
+  LOGGER_BASEDIR;
   LOGGER_SET(std::cerr);
   LOGGER_SET(std::wcerr,0x0);
   LOGGER_NOTICE<<__LOGGER__<<"Test string > string ... "<<ict::test::test_string[0]<<std::endl;
@@ -726,6 +741,7 @@ REGISTER_TEST(logger,tc1){
 }
 REGISTER_TEST(logger,tc2){
   LOGGER_LAYER;
+  LOGGER_BASEDIR;
   LOGGER_SET(std::cerr,0x0);
   LOGGER_SET(std::wcerr);
   LOGGER_NOTICE<<__LOGGER__<<"Test string > wstring ... "<<ict::test::test_string[0]<<std::endl;

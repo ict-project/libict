@@ -5,7 +5,7 @@ project(libict)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_SOURCE_FILES utf8.cpp options.cpp base64.cpp time.cpp logger.cpp)
+set(CMAKE_SOURCE_FILES utf8.cpp options.cpp base64.cpp time.cpp os.cpp logger.cpp)
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
 set_target_properties(ict-static  PROPERTIES OUTPUT_NAME ict)
@@ -36,7 +36,7 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/git_version.h @ONLY)
 
 install(TARGETS ict-static ict-shared DESTINATION lib COMPONENT libraries)
-install(FILES utf8.hpp options.hpp base64.hpp time.hpp logger.hpp all.hpp DESTINATION include/libict COMPONENT headers)
+install(FILES utf8.hpp options.hpp base64.hpp time.hpp os.hpp logger.hpp all.hpp DESTINATION include/libict COMPONENT headers)
 ################################################################
 enable_testing()
 set(CMAKE_CURRENT_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests)

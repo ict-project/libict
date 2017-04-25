@@ -40,9 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.hpp"
 //============================================
 //!Makro ładujące informacje o miejscu w kodzie (char).
-#define __LOGGER__ __FILE__<<":"<<__LINE__<<" ("<<__PRETTY_FUNCTION__<<") "
+#define __LOGGER__ ict::logger::getFileName(__FILE__)<<":"<<__LINE__<<" ("<<__PRETTY_FUNCTION__<<") "
 //!Makro ładujące informacje o miejscu w kodzie (wchar).
-#define __WLOGGER__ __WFILE__<<L":"<<__LINE__<<L" ("<<ict::logger::pretty_function(__PRETTY_FUNCTION__)<<L") "
+#define __WLOGGER__ ict::logger::getFileName(__WFILE__)<<L":"<<__LINE__<<L" ("<<ict::logger::pretty_function(__PRETTY_FUNCTION__)<<L") "
 
 //!Makro ustawiające strumień wyjściowy.
 #define LOGGER_SET(stream,...) ict::logger::output::set(&stream,##__VA_ARGS__)
@@ -57,6 +57,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LOGGER_RESTART ict::logger::restart()
 //!Makro ustawiające wartości domyślne dla warstw logowania.
 #define LOGGER_DEFAULT(...) ict::logger::input::setDefault(__VA_ARGS__)
+//!Makro ustawiajace katalog bazowy do ścieżek plików.
+#define LOGGER_BASEDIR ict::logger::setBaseDir(__FILE__)
+
 
 //!Strumień wejściowy (char) dla poziomu CRITICAL w najwyższej warstwie logowania dla danego wątku.
 #define LOGGER_CRIT ict::logger::input::ostream(ict::logger::critical)
@@ -220,6 +223,22 @@ namespace ict { namespace logger {
   //! @brief Restartuje loggera (cały stos jest kasowany).
   //!
   void restart();
+  //!
+  //! @brief Udostępnia bazowy katalog do ścieżek plików w logerze.
+  //!
+  inline std::string & getBaseDir();
+  //!
+  //! @brief Ustawia bazowy katalog do ścieżek plików w logerze.
+  //!
+  inline void setBaseDir(const std::string & file);
+  //!
+  //! @brief Zwraca nazwę pliku relatywną do bazowego katalogu.
+  //!
+  inline std::string getFileName(const std::string & file);
+  //!
+  //! @brief Zwraca nazwę pliku relatywną do bazowego katalogu.
+  //!
+  inline std::wstring getFileName(const std::wstring & file);
   //!
   //! @brief Konwersja __PRETTY_FUNCTION__
   //!
