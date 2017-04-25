@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utf8.hpp"
 #include "options.hpp"
 #include "time.hpp"
+#include "os.hpp"
 #include "logger.hpp"
 //===========================================
 #endif

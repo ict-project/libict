@@ -226,19 +226,19 @@ namespace ict { namespace logger {
   //!
   //! @brief Udostępnia bazowy katalog do ścieżek plików w logerze.
   //!
-  inline std::string & getBaseDir();
+  std::string & getBaseDir();
   //!
   //! @brief Ustawia bazowy katalog do ścieżek plików w logerze.
   //!
-  inline void setBaseDir(const std::string & file);
+  void setBaseDir(const std::string & file);
   //!
   //! @brief Zwraca nazwę pliku relatywną do bazowego katalogu.
   //!
-  inline std::string getFileName(const std::string & file);
+  std::string getFileName(const std::string & file);
   //!
   //! @brief Zwraca nazwę pliku relatywną do bazowego katalogu.
   //!
-  inline std::wstring getFileName(const std::wstring & file);
+  std::wstring getFileName(const std::wstring & file);
   //!
   //! @brief Konwersja __PRETTY_FUNCTION__
   //!
