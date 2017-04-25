@@ -26,23 +26,14 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild -configuration Release; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make package; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then cpack; fi
+before_deploy:
+  - export RELEASE_PKG_FILE=$(ls ${TRAVIS_BUILD_DIR}/build/libict-*.tar.Z ${TRAVIS_BUILD_DIR}/build/libict-*.tar.gz ${TRAVIS_BUILD_DIR}/build/libict-*.sh ${TRAVIS_BUILD_DIR}/build/libict-*.deb ${TRAVIS_BUILD_DIR}/build/libict-*.rpm)
+  - echo "deploying $RELEASE_PKG_FILE to GitHub releases"
 deploy:
   provider: releases
   api_key: "$GITHUB_API_KEY"
-  on:
-    condition: "$TRAVIS_OS_NAME" = "linux"
-    file:
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.tar.Z"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.tar.gz"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.sh"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.deb"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.rpm"
-  on:
-    condition: "$TRAVIS_OS_NAME" = "osx"
-    file:
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.tar.Z"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.tar.gz"
-      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.sh"
+  file_glob: true
+  file: "${RELEASE_PKG_FILE}"
   skip_cleanup: true
   on:
     tags: true
