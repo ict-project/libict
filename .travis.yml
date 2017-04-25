@@ -29,12 +29,20 @@ script:
 deploy:
   provider: releases
   api_key: "$GITHUB_API_KEY"
-  file:
-    - "$TRAVIS_BUILD_DIR/build/libict-*.tar.Z"
-    - "$TRAVIS_BUILD_DIR/build/libict-*.tar.gz"
-    - "$TRAVIS_BUILD_DIR/build/libict-*.sh"
-    - "$TRAVIS_BUILD_DIR/build/libict-*.deb"
-    - "$TRAVIS_BUILD_DIR/build/libict-*.rpm"
+  on:
+    condition: "$TRAVIS_OS_NAME" = "linux"
+    file:
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.tar.Z"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.tar.gz"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.sh"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.deb"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Linux.rpm"
+  on:
+    condition: "$TRAVIS_OS_NAME" = "osx"
+    file:
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.tar.Z"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.tar.gz"
+      - "${TRAVIS_BUILD_DIR}/build/libict-${TRAVIS_TAG}-Darvin.sh"
   skip_cleanup: true
   on:
     tags: true
