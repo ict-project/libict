@@ -8,3 +8,4 @@ C++11 Library with common application modules.
 * [options](source/options.md)
 * [time](source/time.md)
 * [logger](source/logger.md)
+* [os](source/os.md)
