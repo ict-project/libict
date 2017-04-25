@@ -26,14 +26,17 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild -configuration Release; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make package; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then cpack; fi
-before_deploy:
-  - export RELEASE_PKG_FILE=$(ls ${TRAVIS_BUILD_DIR}/build/libict-*.tar.Z ${TRAVIS_BUILD_DIR}/build/libict-*.tar.gz ${TRAVIS_BUILD_DIR}/build/libict-*.sh ${TRAVIS_BUILD_DIR}/build/libict-*.deb ${TRAVIS_BUILD_DIR}/build/libict-*.rpm)
-  - echo "deploying $RELEASE_PKG_FILE to GitHub releases"
+  - cd ..
 deploy:
   provider: releases
   api_key: "$GITHUB_API_KEY"
   file_glob: true
-  file: "${RELEASE_PKG_FILE}"
+  file: 
+   - "build/libict-*.tar.Z"
+   - "build/libict-*.tar.gz"
+   - "build/libict-*.sh"
+   - "build/libict-*.deb"
+   - "build/libict-*.rpm"
   skip_cleanup: true
   on:
     tags: true
