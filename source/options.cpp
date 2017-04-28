@@ -119,21 +119,21 @@ option_v_wstring_t Parser::parseValue_wstring(std::wstring & input,const diction
 option_v_Integer_t Parser::parseValue_Integer(std::wstring & input,const dictionary_Integer_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
-    option_v_Integer_t output=std::stoi(input);
+    option_v_Integer_t output=std::stoi(input,0,0);
     return(output);
   }
 }
 option_v_lInteger_t Parser::parseValue_lInteger(std::wstring & input,const dictionary_lInteger_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
-    option_v_lInteger_t output=std::stol(input);
+    option_v_lInteger_t output=std::stol(input,0,0);
     return(output);
   }
 }
 option_v_llInteger_t Parser::parseValue_llInteger(std::wstring & input,const dictionary_llInteger_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
-    option_v_llInteger_t output=std::stoll(input);
+    option_v_llInteger_t output=std::stoll(input,0,0);
     return(output);
   }
 }
