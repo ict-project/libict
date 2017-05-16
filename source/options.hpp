@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include <sstream>
 //============================================
@@ -77,6 +78,7 @@ private:
   typedef std::size_t optionId_t;
   typedef std::map<shortOption_t,optionId_t> shortMap_t;
   typedef std::map<longOption_t,optionId_t>  longMap_t;
+  typedef std::set<optionId_t>  idSet_t;
   typedef enum {
     #define _OPTIONS_(type,name) optionType_v_##name=__LINE__,
     #include "options.h.in"
@@ -114,6 +116,7 @@ private:
   optionLang_t lang;
   shortMap_t shortMap;
   longMap_t longMap;
+  idSet_t idSet;
   optionConfig_t optionConfig;
   configList_t configList;
   void setLang();
@@ -309,6 +312,8 @@ public:
       registerConfig(otherId,&target);
     }
   void registerConfig(int priority,config_t config);
+  bool isOptPresent(const shortOption_t & shortOpt) noexcept;
+  bool isOptPresent(const longOption_t & longOpt) noexcept;
   void help() noexcept;
 };
 class Config{
@@ -325,6 +330,8 @@ public:
   //! 
   static int parse(int argc_in,const char **argv_in,std::ostream & output) noexcept;
   static void help(std::ostream & output) noexcept;
+  static bool isOptPresent(const shortOption_t & shortOpt) noexcept;
+  static bool isOptPresent(const longOption_t & longOpt) noexcept;
 };
 //============================================
 #define OPTIONS_CONFIG(name,priority) \
@@ -337,6 +344,9 @@ public:
 
 #define OPTIONS_HELP(output) \
   ict::options::Config::help(output)
+
+#define OPTIONS_PRESENT(option) \
+  ict::options::Config::isOptPresent(option)
 //============================================
 } }
 //============================================

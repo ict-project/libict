@@ -113,6 +113,10 @@ the parser errors should be printed (e.g `std::cerr`).
 If the parser fails (it returns value not equal to 0) help message could be printed with `OPTIONS_HELP(output)`
 macro. Argument `output` is a stream where the help should be printed (e.g `std::cerr`).
 
+### Options testing
+
+In order to test if given option was used macro `OPTIONS_PRESENT(option)` should be used.
+
 ### Usage example
 
 Example application module:

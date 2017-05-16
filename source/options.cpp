@@ -240,6 +240,7 @@ int Parser::parseShort(shortOption_t input){
   if(shortMap.count(input)){
     optionId_t id(shortMap.at(input));
     if (optionConfig.count(id)){
+      idSet.insert(id);
       if (currentId==-1){
         currentId=id;
       } else {
@@ -287,6 +288,7 @@ int Parser::parseLong(std::wstring & input){
   if(longMap.count(input)){
     optionId_t id(longMap.at(input));
     if (optionConfig.count(id)){
+      idSet.insert(id);
       if (currentId==-1){
         currentId=id;
         if (v!=std::string::npos) return(parseValue(value));
@@ -387,6 +389,22 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
 void Parser::registerConfig(int priority,config_t config){
   if (config) configList[priority].push_back(config);
 }
+bool Parser::isOptPresent(const shortOption_t & shortOpt) noexcept{
+  try {
+    if(shortMap.count(shortOpt)) 
+      if (idSet.count(shortMap.at(shortOpt))) 
+        return(true);
+  }catch (...){}
+  return(false);
+}
+bool Parser::isOptPresent(const longOption_t & longOpt) noexcept{
+  try {
+    if(longMap.count(longOpt)) 
+      if (idSet.count(longMap.at(longOpt))) 
+        return(true);
+  }catch (...){}
+  return(false);
+}
 void Parser::help() noexcept{
   try {
     setLang();
@@ -416,6 +434,12 @@ void Config::help(std::ostream & output) noexcept{
   getParser().errors.str("");
   getParser().help();
   output<<getParser().errors.str();
+}
+bool Config::isOptPresent(const shortOption_t & shortOpt) noexcept{
+  return(getParser().isOptPresent(shortOpt));
+}
+bool Config::isOptPresent(const longOption_t & longOpt) noexcept{
+  return(getParser().isOptPresent(longOpt));
 }
 //===========================================
 } }
@@ -528,6 +552,26 @@ REGISTER_TEST(options,tc4){
     std::cout<<" c="<<c<<std::endl;
     return(-1);
   }
+  if (!parser.isOptPresent(L"nic")){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" nic is not present!"<<std::endl;
+    return(-1);
+  }
+  if (!parser.isOptPresent(L'n')){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" n is not present!"<<std::endl;
+    return(-1);
+  }
+  if (!parser.isOptPresent(L'i')){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" i is not present!"<<std::endl;
+    return(-1);
+  }
+  if (!parser.isOptPresent(L'c')){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" c is not present!"<<std::endl;
+    return(-1);
+  }
   return(0);
 }
 REGISTER_TEST(options,tc5){
@@ -538,11 +582,12 @@ REGISTER_TEST(options,tc5){
     "20",
     "--nic=60"
   };
-  ict::options::option_v_Integer_t n=0,nic=0;
+  ict::options::option_v_Integer_t n=0,nic=0,pusty=0;
   ict::options::Parser parser;
   std::cout<<" Test funkcji ict::options::Parser::parse() i ict::options::Parser::registerOptNoValue()"<<std::endl;
   parser.registerOpt(L'n',ict::options::longOptionList_t({L"ic"}),n);
   parser.registerOpt(ict::options::shortOptionList_t({L'i'}),L"nic",nic);
+  parser.registerLongOpt(L"pusty",pusty);
   if ((out=parser.parse(sizeof(input)/sizeof(*input),input))){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" out="<<out<<std::endl;
@@ -556,6 +601,26 @@ REGISTER_TEST(options,tc5){
   if (nic!=60){
     std::cout<<" Błąd!!!"<<std::endl;
     std::cout<<" nic="<<nic<<std::endl;
+    return(-1);
+  }
+  if (!parser.isOptPresent(L"nic")){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" nic is not present!"<<std::endl;
+    return(-1);
+  }
+  if (!parser.isOptPresent(L'n')){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" n is not present!"<<std::endl;
+    return(-1);
+  }
+  if (parser.isOptPresent(L"pusty")){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" pusty is present!"<<std::endl;
+    return(-1);
+  }
+  if (parser.isOptPresent(L"nieznany")){
+    std::cout<<" Błąd!!!"<<std::endl;
+    std::cout<<" nieznany is present!"<<std::endl;
     return(-1);
   }
   return(0);
