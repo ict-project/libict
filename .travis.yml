@@ -12,10 +12,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-6
-      - g++-6
+      - gcc-5
+      - g++-5
       - cmake
       - rpm
+install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 before_script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./build.linux.bsh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then ./build.xcode.bsh; fi
@@ -24,8 +26,8 @@ script:
   - cd build
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];   then xcodebuild -configuration Release; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then make package; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ];   then cpack; fi
+  - ctest
+  - cpack
   - cd ..
 deploy:
   provider: releases
