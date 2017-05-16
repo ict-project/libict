@@ -40,7 +40,7 @@ install(FILES utf8.hpp options.hpp base64.hpp time.hpp os.hpp logger.hpp all.hpp
 ################################################################
 enable_testing()
 set(CMAKE_CURRENT_TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests)
-set(CMAKE_CURRENT_TEST_TOOL ${CMAKE_CURRENT_BINARY_DIR}/libict-test)
+set(CMAKE_CURRENT_TEST_TOOL libict-test)
 
 add_test(NAME ict-utf8-tc1 WORKING_DIRECTORY ${CMAKE_CURRENT_TESTS_DIR}  COMMAND ${CMAKE_CURRENT_TEST_TOOL} ict utf8 tc1)
 add_test(NAME ict-utf8-tc2 WORKING_DIRECTORY ${CMAKE_CURRENT_TESTS_DIR}  COMMAND ${CMAKE_CURRENT_TEST_TOOL} ict utf8 tc2)
