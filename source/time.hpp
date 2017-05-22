@@ -118,17 +118,22 @@ namespace ict { namespace time {
     // Ustawia punkt w czasie na teraz (czas lokalny).
     void setLocalTime(){std::lock_guard<std::mutex> lock(mutex);setTime(true);}
     // Ustawia punkt w czasie na teraz (czas uniwersalny).
-    void setGmtTime(){std::lock_guard<std::mutex> lock(mutex);setTime(false);}
+    void setUtcTime(){std::lock_guard<std::mutex> lock(mutex);setTime(false);}
+    void setGmtTime(){setUtcTime();}
     // Ustawia punkt - na podstawie czasu Unix - wersja integer (czas lokalny).
     void setLocalTime(unix_int_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,true);}
     // Ustawia punkt - na podstawie czasu Unix - wersja integer (czas uniwersalny).
-    void setGmtTime(unix_int_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,false);}
+    void setUtcTime(unix_int_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,false);}
+    void setGmtTime(unix_int_t time){setUtcTime(time);}
     // Ustawia punkt - na podstawie czasu Unix - wersja float (czas lokalny).
     void setLocalTime(unix_float_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,true);}
     // Ustawia punkt - na podstawie czasu Unix - wersja float (czas uniwersalny).
-    void setGmtTime(unix_float_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,false);}
+    void setUtcTime(unix_float_t time){std::lock_guard<std::mutex> lock(mutex);setTime(time,false);}
+    void setGmtTime(unix_float_t time){setUtcTime(time);}
     //! Zobacz ::strftime()
     std::string formatTime(const std::string & format);
+    //! Na podstawie pól msec, sec, min, hour, mday, mon, year ustawia prawidłowo wszystkie pola (czas lokalny).
+    void correctLocalTime();
   };
 
 //===========================================
@@ -147,13 +152,15 @@ std::basic_ostream<charT,traits> & operator << (
   int option=0;
   switch (option){
   case 0:
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(4)<<(timeinfo.year+1900)<<os.widen('-');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(2)<<(timeinfo.mon+1)<<os.widen('-');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(2)<<(timeinfo.mday)<<os.widen(' ');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(2)<<(timeinfo.hour)<<os.widen(':');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(2)<<(timeinfo.min)<<os.widen(':');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(2)<<(timeinfo.sec)<<os.widen('.');
-    os<<std::setfill<charT>('0')<<std::right<<std::setw(3)<<(timeinfo.msec);
+    os<<std::dec;
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(4)<<(timeinfo.year+1900)<<os.widen('-');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(2)<<(timeinfo.mon+1)<<os.widen('-');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(2)<<(timeinfo.mday)<<os.widen(' ');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(2)<<(timeinfo.hour)<<os.widen(':');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(2)<<(timeinfo.min)<<os.widen(':');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(2)<<(timeinfo.sec)<<os.widen('.');
+    os<<std::setfill<charT>(os.widen('0'))<<std::right<<std::setw(3)<<(timeinfo.msec);
+    os<<std::setfill<charT>(os.widen(' '))<<std::left<<std::setw(0);
   break;
   default:break;
   }
