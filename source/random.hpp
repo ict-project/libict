@@ -1,11 +1,11 @@
 //! @file
-//! @brief libict - Header file.
+//! @brief Random module - header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
-//! @date 2012-2017
+//! @date 2016-2017
 //! @copyright ICT-Project Mariusz Ornowski (ict-project.pl)
 /* **************************************************************
-Copyright (c) 2012-2017, ICT-Project Mariusz Ornowski (ict-project.pl)
+Copyright (c) 2016-2017, ICT-Project Mariusz Ornowski (ict-project.pl)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,31 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
-#ifndef _LIBICT_HEADER
-#define _LIBICT_HEADER
+#ifndef _RANDOM_HEADER
+#define _RANDOM_HEADER
 //============================================
-#include "base64.hpp"
-#include "utf8.hpp"
-#include "options.hpp"
-#include "time.hpp"
-#include "os.hpp"
-#include "logger.hpp"
-#include "random.hpp"
-#include "register.hpp"
+#include <mutex>
+#include <random>
+#include <string>
+//============================================
+namespace ict { namespace random {
+//===========================================
+template <typename I=int> I randomInteger(I from,I to){
+  static std::mutex mutex;
+  std::lock_guard<std::mutex> lock(mutex);
+  static std::random_device rd;
+  static std::mt19937 generator(rd());
+  std::uniform_int_distribution<I> distribution(from,to);
+  return(distribution(generator));
+}
+std::string randomString(
+  std::size_t size,
+  const std::string & map=
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+);
+//===========================================
+}}
 //===========================================
 #endif

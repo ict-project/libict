@@ -9,3 +9,5 @@ C++11 Library with common application modules.
 * [time](source/time.md)
 * [logger](source/logger.md)
 * [os](source/os.md)
+* [random](source/random.md)
+* [register](source/register.md)

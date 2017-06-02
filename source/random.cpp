@@ -1,5 +1,5 @@
 //! @file
-//! @brief libict - Header file.
+//! @brief Random module - Source file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2017
@@ -33,16 +33,32 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
-#ifndef _LIBICT_HEADER
-#define _LIBICT_HEADER
 //============================================
-#include "base64.hpp"
-#include "utf8.hpp"
-#include "options.hpp"
-#include "time.hpp"
-#include "os.hpp"
-#include "logger.hpp"
 #include "random.hpp"
-#include "register.hpp"
-//===========================================
+//============================================
+#ifdef ENABLE_TESTING
+#include "test.hpp"
 #endif
+//============================================
+namespace ict { namespace random {
+//===========================================
+std::string randomString(std::size_t size,const std::string & map){
+  std::string out;
+  std::size_t max=map.size();
+  if (!max) return(out);
+  max--;
+  for (std::size_t k=0;k<size;k++){
+     out+=map.at(randomInteger<std::size_t>(0,max));
+  }
+  return(out);
+}
+//===========================================
+} }
+//===========================================
+#ifdef ENABLE_TESTING
+REGISTER_TEST(random,tc1){
+  std::cout<<ict::random::randomString(100)<<std::endl;
+  return(0);
+}
+#endif
+//===========================================
