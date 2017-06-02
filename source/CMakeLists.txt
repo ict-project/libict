@@ -5,7 +5,11 @@ project(libict)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_SOURCE_FILES utf8.cpp options.cpp base64.cpp time.cpp os.cpp logger.cpp random.cpp register.cpp)
+set(CMAKE_SOURCE_FILES 
+  utf8.cpp options.cpp base64.cpp 
+  time.cpp os.cpp logger.cpp random.cpp 
+  register.cpp daemon.cpp
+)
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
 set_target_properties(ict-static  PROPERTIES OUTPUT_NAME ict)
@@ -36,7 +40,12 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/git_version.h @ONLY)
 
 install(TARGETS ict-static ict-shared DESTINATION lib COMPONENT libraries)
-install(FILES utf8.hpp options.hpp base64.hpp time.hpp os.hpp logger.hpp register.hpp all.hpp DESTINATION include/libict COMPONENT headers)
+install(FILES 
+  utf8.hpp options.hpp base64.hpp 
+  time.hpp os.hpp logger.hpp random.hpp 
+  register.hpp daemon.hpp 
+  all.hpp 
+DESTINATION include/libict COMPONENT headers)
 ################################################################
 enable_testing()
 
@@ -69,6 +78,8 @@ add_test(NAME ict-logger-tc2 COMMAND libict-test ict logger tc2)
 add_test(NAME ict-random-tc1 COMMAND libict-test ict random tc1)
 
 add_test(NAME ict-register-tc1 COMMAND libict-test ict reg tc1)
+
+add_test(NAME ict-daemon-tc1 COMMAND libict-test ict daemon tc1)
 ################################################################
 #set(CPACK_GENERATOR "TZ;TGZ;STGZ;DEB;RPM") # Linux
 #set(CPACK_GENERATOR "TZ;TGZ;STGZ")         # MacOS
