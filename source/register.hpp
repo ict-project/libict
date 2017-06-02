@@ -46,7 +46,8 @@ class Base {
 public:
   Base(){}
   virtual ~Base(){}
-  virtual void destroyThis()=0;
+  virtual void initThis(){};
+  virtual void destroyThis(){};
 };
 //===========================================
 template<class T> class Register {
@@ -98,6 +99,12 @@ public:
   std::size_t size(){
     std::lock_guard<std::mutex> lock(mutex);
     return(r.size());
+  }
+  void init(){
+    std::lock_guard<std::mutex> lock(mutex);
+    for (iterator it=r.begin();it!=r.end();++it){
+      if(it->first)  it->first->initThis();
+    }
   }
   void destroy(){
     std::lock_guard<std::mutex> lock(mutex);

@@ -16,6 +16,7 @@ Following functions are available in the register interface:
 * `get(ptr)` - Gets pointer of the object if it is present in the register (nullptr is returned otherwise);
 * `rand()` - Gets pointer of the randomly chosen object if any in the register (nullptr is returned otherwise);
 * `size()` - Gets number of objects kept in the register;
+* `init()` - Calls function `initThis()` on all objects kept in the register;
 * `destroy()` - Calls function `destroyThis()` on all objects kept in the register;
 * `begin()` - Returns *begin* iterator;
 * `end()` - Returns *end* iterator.
