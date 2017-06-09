@@ -155,16 +155,6 @@ namespace ict { namespace logger {
       static Data data;
       return(data);
     }
-    /*
-    //! Mutex dla strumieni wyjściowych.
-    static std::mutex mutex;
-    //! Zestaw strumieni wyjściowych ostream.
-    static ostream_map_t ostream_map;
-    //! Zestaw strumieni wyjściowych wostream.
-    static wostream_map_t wostream_map;
-    //! Wskaźnik na obieg obsługujący syslog.
-    static std::unique_ptr<Syslog> syslog;
-*/
     template <typename S> 
     void set(S * ostream,flags_t filter,std::map<S *,flags_t> & map){
       TRY_BEGIN
@@ -497,7 +487,6 @@ namespace ict { namespace logger {
     ict::logger::flags_t active;
     //! Poziomy logowania, które zostały wykonane na tej warstwie.
     ict::logger::flags_t done;
-    
   public:
     //!
     //! @brief Konstruktor.
@@ -646,16 +635,6 @@ namespace ict { namespace logger {
       static Data data;
       return(data);
     }
-    /*
-    //! Mutex dla strumieni wejściowych.
-    static std::mutex mutex;
-    //! Wartość domyślna dla poziomów logowania bez buforowania na danej warstwie.
-    static ict::logger::flags_t directDefault(ict::logger::notices);
-    //! Wartość domyślna dla poziomów logowania z buforowaniem na danej warstwie.
-    static ict::logger::flags_t bufferedDefault(ict::logger::nonotices);
-    //! Wartość domyślna dla poziomów logowania, które powodują opróżnienie bufora na danej warstwie.
-    static ict::logger::flags_t dumpDefault(ict::logger::errors);
-    */
     void setDefault(
       ict::logger::flags_t direct_in,
       ict::logger::flags_t buffered_in,
