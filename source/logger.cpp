@@ -141,6 +141,21 @@ namespace ict { namespace logger {
   namespace output {
     typedef std::map<std::ostream *,flags_t> ostream_map_t;
     typedef std::map<std::wostream *,flags_t> wostream_map_t;
+    struct Data{
+      //! Mutex dla strumieni wyjściowych.
+      std::mutex mutex;
+      //! Zestaw strumieni wyjściowych ostream.
+      ostream_map_t ostream_map;
+      //! Zestaw strumieni wyjściowych wostream.
+      wostream_map_t wostream_map;
+      //! Wskaźnik na obieg obsługujący syslog.
+      std::unique_ptr<Syslog> syslog;
+    };
+    static Data & data(){
+      static Data data;
+      return(data);
+    }
+    /*
     //! Mutex dla strumieni wyjściowych.
     static std::mutex mutex;
     //! Zestaw strumieni wyjściowych ostream.
@@ -149,11 +164,11 @@ namespace ict { namespace logger {
     static wostream_map_t wostream_map;
     //! Wskaźnik na obieg obsługujący syslog.
     static std::unique_ptr<Syslog> syslog;
-
+*/
     template <typename S> 
     void set(S * ostream,flags_t filter,std::map<S *,flags_t> & map){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       if (filter&&ostream){
         map[ostream]=filter;
       } else if (map.count(ostream)) {
@@ -162,18 +177,18 @@ namespace ict { namespace logger {
       TRY_END
     }
     void set(std::ostream * ostream,flags_t filter){
-      set(ostream,filter,ostream_map);
+      set(ostream,filter,data().ostream_map);
     }
     void set(std::wostream * wostream,flags_t filter){
-      set(wostream,filter,wostream_map);
+      set(wostream,filter,data().wostream_map);
     }
     void set(std::string * ident,flags_t filter){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       if (filter&&ident){
-        syslog.reset(new Syslog(*ident,filter));
-      } else if (syslog.get()) {
-        syslog.reset(nullptr);
+        data().syslog.reset(new Syslog(*ident,filter));
+      } else if (data().syslog.get()) {
+        data().syslog.reset(nullptr);
       }
       TRY_END
     }
@@ -181,7 +196,7 @@ namespace ict { namespace logger {
     template <typename S> 
     flags_t test(S * ostream,std::map<S *,flags_t> & map){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       if (map.count(ostream)){
         return(map.at(ostream));
       }
@@ -189,16 +204,16 @@ namespace ict { namespace logger {
       return(0x0);
     }
     flags_t test(std::ostream * ostream){
-      return(test(ostream,ostream_map));
+      return(test(ostream,data().ostream_map));
     }
     flags_t test(std::wostream * wostream){
-      return(test(wostream,wostream_map));
+      return(test(wostream,data().wostream_map));
     }
     flags_t test(){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
-      if (syslog.get()) {
-        return(syslog->getFilter());
+      std::lock_guard<std::mutex> lock(data().mutex);
+      if (data().syslog.get()) {
+        return(data().syslog->getFilter());
       }
       TRY_END
       return(0x0);
@@ -206,7 +221,7 @@ namespace ict { namespace logger {
     //Zapisuje pojedynczy log w syslog.
     static inline void log_syslog_out(flags_t severity,const std::string & in){
       TRY_BEGIN
-      if (syslog.get()) syslog->log(severity,in);
+      if (data().syslog.get()) data().syslog->log(severity,in);
       TRY_END
     }
     //Zapisuje pojedynczy log w syslog.
@@ -222,9 +237,9 @@ namespace ict { namespace logger {
     template <typename charT>
     static inline void log_syslog_out(const log_line_t<charT> & in){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
-      if (syslog.get()){//Jeśli syslog jest ustawiony
-        if ((in.severity)&(syslog->getFilter())){//Jeśli został ustawiony i poziom logu się zgadza.
+      std::lock_guard<std::mutex> lock(data().mutex);
+      if (data().syslog.get()){//Jeśli syslog jest ustawiony
+        if ((in.severity)&(data().syslog->getFilter())){//Jeśli został ustawiony i poziom logu się zgadza.
           std::basic_ostringstream<charT> out;
           //Jeśli jest to wpis buforowany, to go oznacz i wstaw czas powstania tego logu.
           if (in.buffered) out<<out.widen('|')<<out.widen(' ')<<in.time<<out.widen(' ');
@@ -260,7 +275,7 @@ namespace ict { namespace logger {
     template <typename charIn,typename charOut> 
     static inline void log_stream_out(flags_t severity,const std::basic_string<charIn>& in, std::map<std::basic_ostream<charOut>*,flags_t> & out){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       for (typename std::map<std::basic_ostream<charOut>*,flags_t>::iterator it=out.begin();it!=out.end();++it){//Przejdź po liście strumieni.
         if (severity&(it->second))//Jeśli filtr przepuszcza ten wpis
           if (it->first){//Jeśli to nie jest wpis dotyczący logera systemowego.
@@ -288,9 +303,9 @@ namespace ict { namespace logger {
       //Wstaw linię.
       out<<in.line<<std::endl;
       //Zapisz do wszystkich strumieni wyjściowych ostream.
-      log_stream_out(in.severity,out.str(),ostream_map);
+      log_stream_out(in.severity,out.str(),data().ostream_map);
       //Zapisz do wszystkich strumieni wyjściowych wostream.
-      log_stream_out(in.severity,out.str(),wostream_map);
+      log_stream_out(in.severity,out.str(),data().wostream_map);
       TRY_END
     }
   }
@@ -617,6 +632,21 @@ namespace ict { namespace logger {
   }
   //==========================================================================
   namespace input {
+    struct Data{
+      //! Mutex dla strumieni wejściowych.
+      std::mutex mutex;
+      //! Wartość domyślna dla poziomów logowania bez buforowania na danej warstwie.
+      ict::logger::flags_t directDefault=ict::logger::notices;
+      //! Wartość domyślna dla poziomów logowania z buforowaniem na danej warstwie.
+      ict::logger::flags_t bufferedDefault=ict::logger::nonotices;
+      //! Wartość domyślna dla poziomów logowania, które powodują opróżnienie bufora na danej warstwie.
+      ict::logger::flags_t dumpDefault=ict::logger::errors;
+    };
+    static Data & data(){
+      static Data data;
+      return(data);
+    }
+    /*
     //! Mutex dla strumieni wejściowych.
     static std::mutex mutex;
     //! Wartość domyślna dla poziomów logowania bez buforowania na danej warstwie.
@@ -625,16 +655,17 @@ namespace ict { namespace logger {
     static ict::logger::flags_t bufferedDefault(ict::logger::nonotices);
     //! Wartość domyślna dla poziomów logowania, które powodują opróżnienie bufora na danej warstwie.
     static ict::logger::flags_t dumpDefault(ict::logger::errors);
+    */
     void setDefault(
       ict::logger::flags_t direct_in,
       ict::logger::flags_t buffered_in,
       ict::logger::flags_t dump_in
     ){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
-      directDefault=direct_in;
-      bufferedDefault=buffered_in;
-      dumpDefault=dump_in;
+      std::lock_guard<std::mutex> lock(data().mutex);
+      data().directDefault=direct_in;
+      data().bufferedDefault=buffered_in;
+      data().dumpDefault=dump_in;
       TRY_END
     }
     Layer::Layer(
@@ -643,18 +674,18 @@ namespace ict { namespace logger {
       ict::logger::flags_t dump_in
     ){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       std::thread::id id(std::this_thread::get_id());//Ustal ID wątku.
-      if (ict::logger::defaultValue&direct_in) direct_in=directDefault;//Jeśli wartość domyślna.
-      if (ict::logger::defaultValue&buffered_in) buffered_in=bufferedDefault;//Jeśli wartość domyślna.
-      if (ict::logger::defaultValue&dump_in) dump_in=dumpDefault;//Jeśli wartość domyślna.
+      if (ict::logger::defaultValue&direct_in) direct_in=data().directDefault;//Jeśli wartość domyślna.
+      if (ict::logger::defaultValue&buffered_in) buffered_in=data().bufferedDefault;//Jeśli wartość domyślna.
+      if (ict::logger::defaultValue&dump_in) dump_in=data().dumpDefault;//Jeśli wartość domyślna.
       get_map_char()[id].push(direct_in,buffered_in,dump_in);//Dodaj stos logerów char dla tej warstwy.
       get_map_wchar()[id].push(direct_in,buffered_in,dump_in);//Dodaj stos logerów wchar dla tej warstwy.
       TRY_END
     }
     Layer::~Layer(){
       TRY_BEGIN
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       std::thread::id id(std::this_thread::get_id());//Ustal ID wątku.
       //Jeśli istnieje stos dla wątku.
       if (get_map_char().count(id)){
@@ -673,7 +704,7 @@ namespace ict { namespace logger {
       TRY_END
     }
     std::ostream & ostream(flags_t severity){
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       static BlackHole<char> blackHoleBuff;
       static std::basic_ostream<char> blackHole(&blackHoleBuff);
       TRY_BEGIN
@@ -686,7 +717,7 @@ namespace ict { namespace logger {
       return(blackHole);
     }
     std::wostream & wostream(flags_t severity){
-      std::lock_guard<std::mutex> lock(mutex);
+      std::lock_guard<std::mutex> lock(data().mutex);
       static BlackHole<wchar_t> blackHoleBuff;
       static std::basic_ostream<wchar_t> blackHole(&blackHoleBuff);
       TRY_BEGIN
@@ -700,7 +731,7 @@ namespace ict { namespace logger {
     }
   }
   void restart(){
-    std::lock_guard<std::mutex> lock(input::mutex);
+    std::lock_guard<std::mutex> lock(input::data().mutex);
     TRY_BEGIN
     get_map_char().clear();
     get_map_wchar().clear();
