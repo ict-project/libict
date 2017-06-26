@@ -12,3 +12,4 @@ C++11 Library with common application modules.
 * [random](source/random.md)
 * [register](source/register.md)
 * [daemon](source/daemon.md)
+* [pool](source/pool.md)
