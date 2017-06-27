@@ -62,18 +62,26 @@ class Distributor;
 
 template<typename T>
 class ItemPtr: public std::shared_ptr<T> {
-public:
-  ItemPtr() noexcept : std::shared_ptr<T>(){}
-  ItemPtr(const ItemPtr & p) noexcept : std::shared_ptr<T>(p){}
-  ItemPtr(const std::shared_ptr<T> & p) noexcept : std::shared_ptr<T>(p){}
-  ItemPtr(T * p) noexcept : std::shared_ptr<T>(p){}
-  ~ItemPtr(){
+private:
+  void callDistributor() noexcept {
     try {
       if (std::shared_ptr<T>::use_count()>1) 
         if (std::shared_ptr<T>::get()) 
           std::shared_ptr<T>::get()->callDistributor();
     } catch (...) {
     }
+  }
+public:
+  ItemPtr() noexcept : std::shared_ptr<T>(){}
+  ItemPtr(const ItemPtr & p) noexcept : std::shared_ptr<T>(p){}
+  ItemPtr(const std::shared_ptr<T> & p) noexcept : std::shared_ptr<T>(p){}
+  ItemPtr(T * p) noexcept : std::shared_ptr<T>(p){}
+  ~ItemPtr(){
+    callDistributor();
+  }
+  void reset(T* p){
+    std::shared_ptr<T>::reset(p);
+    callDistributor();
   }
 };
 
@@ -257,7 +265,7 @@ public:
       }
     }
     if (item) item->setDistributor(this);
-    job(item);
+    if (job) job(item);
   }
   void addJob(job_t job){
     ItemPtr<T> item;
@@ -272,7 +280,7 @@ public:
       }
     }
     if (item) item->setDistributor(this);
-    job(item);
+    if (job) job(item);
   }
 };
 //============================================
