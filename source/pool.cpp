@@ -68,28 +68,28 @@ std::size_t DistributorBase::getNewIndex(){
 }
 bool DistributorBase::createItem(std::size_t k){
   if (item_list.count(k)){
-    LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+    LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(false);
   }
   if (itemCreate(k)){
     item_list[k];
-    LOGGER_DEBUG<<__LOGGER__<<"Utworzono element puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+    LOGGER_DEBUG<<__LOGGER__<<"Utworzono element puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+  LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::deleteItem(std::size_t k){
   if (!item_list.count(k)){
-    LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+    LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(false);
   }
   item_list.erase(k);
   if (itemDelete(k)){
-    LOGGER_DEBUG<<__LOGGER__<<"Usunięto element puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+    LOGGER_DEBUG<<__LOGGER__<<"Usunięto element puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<")!"<<std::endl;
+  LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::testItem(std::size_t k){
@@ -101,7 +101,7 @@ bool DistributorBase::testItem(std::size_t k){
     if (max_use_count) if (max_use_count<item.use_count) return(false);
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd testowania elementu puli (k="<<k<<")!"<<std::endl;
+  LOGGER_ERR<<__LOGGER__<<"Błąd testowania elementu puli (k="<<k<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::useItem(std::size_t k){
@@ -111,7 +111,7 @@ bool DistributorBase::useItem(std::size_t k){
     item_list[k].use_count++;
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd użycia elementu puli (k="<<k<<")!"<<std::endl;
+  LOGGER_ERR<<__LOGGER__<<"Błąd użycia elementu puli (k="<<k<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 std::size_t DistributorBase::selectItem(){
