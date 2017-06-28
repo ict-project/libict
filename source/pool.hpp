@@ -232,7 +232,7 @@ private:
   }
   bool itemReady(std::size_t k){
     if (item_list.count(k)){
-      return(item_list.at(k).use_count()==1);
+      return(item_list.at(k).unique());
     }
     return(false);
   }
