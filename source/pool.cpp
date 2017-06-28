@@ -47,6 +47,8 @@ namespace ict { namespace pool {
 DistributorBase::DistributorBase(uint32_t maxSize,uint32_t minSize,uint32_t maxUseCount,uint32_t maxLifeTime,uint32_t maxIdleTime):
   max_size(maxSize),min_size(minSize),max_use_count(maxUseCount),max_life_time(maxLifeTime),max_idle_time(maxIdleTime)
 {
+  if (min_size&&max_size) if (min_size>max_size) min_size=max_size;
+  if (max_idle_time&&max_life_time) if (max_idle_time>max_life_time) max_idle_time=max_idle_time;
   LOGGER_INFO<<__LOGGER__<<"Utworzono pulę (p="<<this<<"): ";
   LOGGER_INFO<<"max_size="<<maxSize<<",min_size="<<minSize<<",max_use_count="<<maxUseCount<<",max_life_time="<<maxLifeTime<<",max_idle_time="<<maxIdleTime;
   LOGGER_INFO<<std::endl;
@@ -161,10 +163,12 @@ void DistributorBase::maxUseCount(uint32_t value){
 void DistributorBase::maxLifeTime(uint32_t value){
   std::unique_lock<std::mutex> lock(mutex);
   max_life_time=value;
+  if (value) if (max_idle_time>max_life_time) max_idle_time=max_idle_time;
 }
 void DistributorBase::maxIdleTime(uint32_t value){
   std::unique_lock<std::mutex> lock(mutex);
   max_idle_time=value;
+  if (value) if (max_life_time<max_idle_time) max_life_time=max_idle_time;
 }
 void DistributorBase::clean(){
   std::unique_lock<std::mutex> lock(mutex);
