@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_SOURCE_FILES 
   utf8.cpp options.cpp base64.cpp 
   time.cpp os.cpp logger.cpp random.cpp 
-  register.cpp daemon.cpp pool.cpp
+  register.cpp daemon.cpp pool.cpp json-object.cpp
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
@@ -43,7 +43,7 @@ install(TARGETS ict-static ict-shared DESTINATION lib COMPONENT libraries)
 install(FILES 
   utf8.hpp options.hpp base64.hpp 
   time.hpp os.hpp logger.hpp random.hpp 
-  register.hpp daemon.hpp 
+  register.hpp daemon.hpp pool.hpp json-object.hpp
   all.hpp 
 DESTINATION include/libict COMPONENT headers)
 ################################################################

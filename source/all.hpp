@@ -44,5 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "logger.hpp"
 #include "random.hpp"
 #include "register.hpp"
+#include "daemon.hpp"
+#include "pool.hpp"
+#include "json-object.hpp"
 //===========================================
 #endif
