@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 //============================================
 #define JOBJECT_NAME(s) {const static std::string _elementName(s);jsonParams_elementName=&_elementName;}
+#define JOBJECT_INFO(s) {const static std::string _elementInfo(s);jsonParams_elementInfo=&_elementInfo;}
 #define JOBJECT_DESC(s) {const static std::vector<std::string> _elementDesc(s);jsonParams_elementDesc=&_elementDesc;}
 #define JOBJECT_VALIDATE(s) {const static std::string _jsValidate(s);jsonParams_jsValidate=&_jsValidate;}
 
@@ -148,7 +149,9 @@ protected:
   bool jsonForceInfo=false;
   //! Nazwa elementu JSON (opcjonalnie).
   const std::string * jsonParams_elementName=nullptr;
-  //! Kod (ciało funkcji) JS do walidowania zawartości (opcjonalnie).
+  //! Opis skrócony elementu JSON (opcjonalnie).
+  const std::string * jsonParams_elementInfo=nullptr;
+  //! Opis elementu JSON (opcjonalnie).
   const std::vector<std::string> * jsonParams_elementDesc=nullptr;
   //! Kod (ciało funkcji) JS do walidowania zawartości (opcjonalnie).
   const std::string * jsonParams_jsValidate=nullptr;
@@ -231,6 +234,7 @@ int NumberType<T>::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(BaseType<T>::json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(BaseType<T>,elementName)
+    DO_INFO(BaseType<T>,elementInfo)
     DO_INFO(BaseType<T>,elementDesc)
     DO_INFO(BaseType<T>,jsValidate)
     DO_INFO(NumberType<T>,minExcl)
@@ -534,6 +538,8 @@ int ArrayType<E>::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
+    DO_INFO(Base,elementInfo)
+    DO_INFO(Base,elementDesc)
     DO_INFO(Base,jsValidate)
     DO_INFO(ArrayType<E>,minSize)
     DO_INFO(ArrayType<E>,maxSize)
@@ -638,6 +644,8 @@ int ObjectType2<O>::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
+    DO_INFO(Base,elementInfo)
+    DO_INFO(Base,elementDesc)
     DO_INFO(Base,jsValidate)
     {
       std::map<std::string,bool> m=getAllJsonProp();
@@ -687,6 +695,8 @@ int MutableType2<O>::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
+    DO_INFO(Base,elementInfo)
+    DO_INFO(Base,elementDesc)
     DO_INFO(Base,jsValidate)
     info_ptr->JOBJECT_SHOW(info_ptr->mut);
   }
@@ -699,11 +709,13 @@ class BaseInfo : public ObjectType1{
 public:
   StringType jsonType;
   StringType elementName;
+  StringType elementInfo;
   ArrayType<StringType> elementDesc;
   StringType jsValidate;
   BaseInfo(){
     JOBJECT_PROP(jsonType)
     JOBJECT_PROP(elementName)
+    JOBJECT_PROP(elementInfo)
     JOBJECT_PROP(elementDesc)
     JOBJECT_PROP(jsValidate)
   }

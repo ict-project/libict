@@ -373,6 +373,7 @@ int BoolType::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType)
     DO_INFO(BaseType<bool>,elementName)
+    DO_INFO(BaseType<bool>,elementInfo)
     DO_INFO(BaseType<bool>,elementDesc)
     DO_INFO(BaseType<bool>,jsValidate)
     DO_INFO(BoolType,exampleIn)
@@ -413,6 +414,7 @@ int NullType::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(BaseType<bool>,elementName)
+    DO_INFO(BaseType<bool>,elementInfo)
     DO_INFO(BaseType<bool>,elementDesc)
     DO_INFO(BaseType<bool>,jsValidate)
   }
@@ -448,6 +450,7 @@ int StringType::infoJsonThis(std::wstring & output){
     info_ptr->jsonType=get_type_name(json_type);
     info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
+    DO_INFO(Base,elementInfo)
     DO_INFO(Base,elementDesc)
     DO_INFO(Base,jsValidate)
     DO_INFO(StringType,minLen)
