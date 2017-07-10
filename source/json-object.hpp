@@ -44,6 +44,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <memory>
 //============================================
+#define JOBJECT_NAME(s) {const static std::string _elementName(s);jsonParams_elementName=&_elementName;}
+#define JOBJECT_DESC(s) {const static std::vector<std::string> _elementDesc(s);jsonParams_elementDesc=&_elementDesc;}
+#define JOBJECT_VALIDATE(s) {const static std::string _jsValidate(s);jsonParams_jsValidate=&_jsValidate;}
+
+#define JOBJECT_PROP(element,...) registerProp(&(this->element),#element,##__VA_ARGS__);
+#define JOBJECT_HIDE(element) hideJsonProp(&(this->element));
+#define JOBJECT_SHOW(element) showJsonProp(&(this->element));
+#define JOBJECT_HIDE_ALL() hideAllJsonProp();
+#define JOBJECT_SHOW_ALL() showAllJsonProp();
+
 #define DO_JOB(operation)\
   switch(operation){\
     case 0:break;\
@@ -51,9 +61,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     default:return(-1);\
   }
 #define DO_INFO(base,name) \
-  if (base::name) {\
-    info_ptr->name()=(*base::name);\
-    info_ptr->showJsonProp(info_ptr->name);\
+  if (base::jsonParams_##name) {\
+    info_ptr->name()=(*base::jsonParams_##name);\
+    info_ptr->JOBJECT_SHOW(info_ptr->name);\
   }
 //============================================
 namespace ict { namespace jobject {
@@ -87,46 +97,29 @@ std::string get_type_name(json_type_t type);
 //===========================================
 namespace number {
 //===========================================
-void from_string(const std::wstring & input,int & output);
-void from_string(const std::wstring & input,long int & output);
-void from_string(const std::wstring & input,unsigned int & output);
-void from_string(const std::wstring & input,long long & output);
-void from_string(const std::wstring & input,unsigned long long & output);
-void from_string(const std::wstring & input,float & output);
-void from_string(const std::wstring & input,double & output);
-void from_string(const std::wstring & input,long double & output);
 template<typename T>
-int getFromString(std::wstring & input,T & output){
-  std::wstring s;
-  if (get_json_element(input,s)){
-    try{
-      from_string(s,output);
-    }catch(...){
-      std::ostringstream error;
-      error<<"Niepoprawna wartość JSON Number ('"<<ict::utf8::get(s)<<"') - błąd parsowania!";
-      throw std::invalid_argument(error.str());
-    }
-  } else {
-    return(1);
+int getFromString(const std::wstring & input,T & output){
+  try{
+    std::wistringstream s;
+    s.str(input);
+    s>>output;
+  }catch(...){
+    std::ostringstream error;
+    error<<"Niepoprawna wartość JSON Number ('"<<ict::utf8::get(input)<<"') - błąd parsowania!";
+    throw std::invalid_argument(error.str());
   }
-  if (100<input.size()) throw std::invalid_argument("Zbyt długa wartość JSON Number - błąd parsowania!");
   return(0);
 }
-void to_string(std::wstring & output,const int & input);
-void to_string(std::wstring & output,const long int & input);
-void to_string(std::wstring & output,const unsigned int & input);
-void to_string(std::wstring & output,const long long & input);
-void to_string(std::wstring & output,const unsigned long long & input);
-void to_string(std::wstring & output,const float & input);
-void to_string(std::wstring & output,const double & input);
-void to_string(std::wstring & output,const long double & input);
 template<typename T>
 int putToString(std::wstring & output,T & input){
-  std::wstring o;
-  to_string(o,input);
-  if ((o.size()+output.size())<output.max_size()){
-    output+=o;
-    return(0);
+  try{
+    std::wostringstream s;
+    s<<input;
+    output=s.str();
+  }catch(...){
+    std::ostringstream error;
+    error<<"Niepoprawna wartość JSON Number ('"<<input<<"') - błąd serializacji!";
+    throw std::invalid_argument(error.str());
   }
   return(1);
 }
@@ -148,29 +141,28 @@ protected:
   job_t beforeSerialize;
   job_t afterSerialize;
   job_t extraTest;
+  //! Podmienia serializeJson na infoJson.
+  bool jsonForceInfo=false;
   //! Nazwa elementu JSON (opcjonalnie).
-  const std::string * elementName;
-  #define JOBJECT_NAME(s) {const static std::string _elementName(s);elementName=&_elementName;}
+  const std::string * jsonParams_elementName=nullptr;
   //! Kod (ciało funkcji) JS do walidowania zawartości (opcjonalnie).
-  const std::vector<std::string> * elementDesc;
-  #define JOBJECT_DESC(s) {const static std::vector<std::string> _elementDesc(s);elementDesc=&_elementDesc;}
+  const std::vector<std::string> * jsonParams_elementDesc=nullptr;
   //! Kod (ciało funkcji) JS do walidowania zawartości (opcjonalnie).
-  const std::string * jsValidate;
-  #define JOBJECT_VALIDATE(s) {const static std::string _jsValidate(s);jsValidate=&_jsValidate;}
+  const std::string * jsonParams_jsValidate=nullptr;
 protected:
-  virtual int parseThis(std::wstring & input)=0;
-  virtual int serializeThis(std::wstring & output)=0;
-  virtual int infoThis(std::wstring & output)=0;
-  virtual int testThis()=0;
+  virtual int parseJsonThis(std::wstring & input)=0;
+  virtual int serializeJsonThis(std::wstring & output)=0;
+  virtual int infoJsonThis(std::wstring & output)=0;
+  virtual int testJsonThis()=0;
 public:
   virtual ~Base(){}
-  virtual int parseJson(std::wstring & input);
+  int parseJson(std::wstring & input);
   int parseJson(std::string & input);
-  virtual int serializeJson(std::wstring & output);
+  int serializeJson(std::wstring & output);
   int serializeJson(std::string & output);
-  virtual int infoJson(std::wstring & output);
+  int infoJson(std::wstring & output);
   int infoJson(std::string & output);
-  virtual int testJson();
+  int testJson();
 };
 //===========================================
 template<typename T>
@@ -185,23 +177,23 @@ template<typename T>
 class NumberType: public BaseType<T>{
 private:
   std::unique_ptr<NumberInfo<T>> info_ptr;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
   //! Dolna granica wartości (wyłącznie - opcjonalnie).
-  const T * minExcl;
+  const T * jsonParams_minExcl=nullptr;
   //! Górna granica wartości (wyłącznie - opcjonalnie).
-  const T * maxExcl;
+  const T * jsonParams_maxExcl=nullptr;
   //! Dolna granica wartości (włącznie - opcjonalnie).
-  const T * minIncl;
+  const T * jsonParams_minIncl=nullptr;
   //! Górna granica wartości (włącznie - opcjonalnie).
-  const T * maxIncl;
+  const T * jsonParams_maxIncl=nullptr;
   //! Przykład (opcjonalnie).
-  const T * exampleIn;
+  const T * jsonParams_exampleIn=nullptr;
   //! Przykład wyjściowy (opcjonalnie).
-  const T * exampleOut;
+  const T * jsonParams_exampleOut=nullptr;
 public:
   NumberType(){
     BaseType<T>::value=0;
@@ -209,20 +201,32 @@ public:
   }
 };
 template<typename T>
-int NumberType<T>::parseThis(std::wstring & input){
-  return(number::getFromString(input,BaseType<T>::value));
+int NumberType<T>::parseJsonThis(std::wstring & input){
+  std::wstring s;
+  if (get_json_element(input,s)){
+    number::getFromString(s,BaseType<T>::value);
+    return(0);
+  }
+  if (100<input.size())  throw std::invalid_argument("Zbyt długa wartość JSON String - błąd parsowania!");
+  return(1);
 }
 template<typename T>
-int NumberType<T>::serializeThis(std::wstring & output){
-  return(number::putToString(output,BaseType<T>::value));
+int NumberType<T>::serializeJsonThis(std::wstring & output){
+  std::wstring o;
+  number::putToString(o,BaseType<T>::value);
+  if ((o.size()+output.size())<output.max_size()){
+    output+=o;
+    return(0);
+  }
+  return(1);
 }
 template<typename T>
-int NumberType<T>::infoThis(std::wstring & output){
+int NumberType<T>::infoJsonThis(std::wstring & output){
   if (!info_ptr){
     info_ptr.reset(new NumberInfo<T>);
-    info_ptr->hideAllJsonProp();
+    info_ptr->JOBJECT_HIDE_ALL();
     info_ptr->jsonType=get_type_name(BaseType<T>::json_type);
-    info_ptr->showJsonProp(info_ptr->jsonType);
+    info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(BaseType<T>,elementName)
     DO_INFO(BaseType<T>,elementDesc)
     DO_INFO(BaseType<T>,jsValidate)
@@ -238,30 +242,30 @@ int NumberType<T>::infoThis(std::wstring & output){
   return(0);
 }
 template<typename T>
-int NumberType<T>::testThis(){
+int NumberType<T>::testJsonThis(){
   bool e=false;
   std::ostringstream error;
-  if (minExcl){//Jeśli jest ograniczenie.
-    if (!((*minExcl)<BaseType<T>::value)) {//Sprawdź ograniczenie.
-      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być mniejsza/równa niż "<<(*minExcl)<<"! ";
+  if (jsonParams_minExcl){//Jeśli jest ograniczenie.
+    if (!((*jsonParams_minExcl)<BaseType<T>::value)) {//Sprawdź ograniczenie.
+      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być mniejsza/równa niż "<<(*jsonParams_minExcl)<<"! ";
       e=true;
     }
   }
-  if (maxExcl){//Jeśli jest ograniczenie.
-    if (!(BaseType<T>::value<(*maxExcl))) {//Sprawdź ograniczenie.
-      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być większa/równa niż "<<(*maxExcl)<<"! ";
+  if (jsonParams_maxExcl){//Jeśli jest ograniczenie.
+    if (!(BaseType<T>::value<(*jsonParams_maxExcl))) {//Sprawdź ograniczenie.
+      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być większa/równa niż "<<(*jsonParams_maxExcl)<<"! ";
       e=true;
     }
   }
-  if (minIncl){//Jeśli jest ograniczenie.
-    if (!((*minIncl)<=BaseType<T>::value)) {//Sprawdź ograniczenie.
-      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być mniejsza niż "<<(*minIncl)<<"! ";
+  if (jsonParams_minIncl){//Jeśli jest ograniczenie.
+    if (!((*jsonParams_minIncl)<=BaseType<T>::value)) {//Sprawdź ograniczenie.
+      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być mniejsza niż "<<(*jsonParams_minIncl)<<"! ";
       e=true;
     }
   }
-  if (maxIncl){//Jeśli jest ograniczenie.
-    if (!(BaseType<T>::value<=(*maxIncl))) {//Sprawdź ograniczenie.
-      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być większa niż "<<(*maxIncl)<<"! ";
+  if (jsonParams_maxIncl){//Jeśli jest ograniczenie.
+    if (!(BaseType<T>::value<=(*jsonParams_maxIncl))) {//Sprawdź ograniczenie.
+      error<<"Wartość elementu JSON Number ("<<BaseType<T>::value<<") nie może być większa niż "<<(*jsonParams_maxIncl)<<"! ";
       e=true;
     }
   }
@@ -272,15 +276,15 @@ int NumberType<T>::testThis(){
 class BoolType: public BaseType<bool>{
 private:
   std::unique_ptr<BoolInfo> info_ptr;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
   //! Przykład wejściowy (opcjonalnie).
-  const bool * exampleIn;
+  const bool * jsonParams_exampleIn=nullptr;
   //! Przykład wyjściowy (opcjonalnie).
-  const bool * exampleOut;
+  const bool * jsonParams_exampleOut=nullptr;
 public:
   BoolType(){
     BaseType<bool>::json_type=json_type_bool;
@@ -291,10 +295,10 @@ public:
 class NullType: public BaseType<bool>{
 private:
   std::unique_ptr<NullInfo> info_ptr;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
 public:
   NullType(){
@@ -306,21 +310,21 @@ public:
 class StringType: public Base, public std::string{
 private:
   std::unique_ptr<StringInfo> info_ptr;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
   //! Minimalna długość, którą String musi spełniać (opcjonalnie).
-  const std::size_t * minLen;
+  const std::size_t * jsonParams_minLen=nullptr;
   //! Maksymalna długość, którą String musi spełniać (opcjonalnie).
-  const std::size_t * maxLen;
+  const std::size_t * jsonParams_maxLen=nullptr;
   //! Wyrażenie regularne, który String musi spełniać (opcjonalnie).
-  const std::string * regex;
+  const std::string * jsonParams_regex=nullptr;
   //! Przykład wejściowy (opcjonalnie).
-  const std::string * exampleIn;
+  const std::string * jsonParams_exampleIn=nullptr;
   //! Przykład wyjściowy (opcjonalnie).
-  const std::string * exampleOut;
+  const std::string * jsonParams_exampleOut=nullptr;
 public:
   StringType(){
     json_type=json_type_string;
@@ -366,15 +370,15 @@ private:
   std::size_t parseIndex=0;
   std::size_t serializeIndex=0;
   std::size_t infoIndex=0;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
   //! Minimalna liczba elementów.
-  std::size_t * minSize;
+  std::size_t * jsonParams_minSize=nullptr;
   //! Maksymalna liczba elementów.
-  std::size_t * maxSize;
+  std::size_t * jsonParams_maxSize=nullptr;
 public:
   ArrayType(){
     json_type=json_type_array;
@@ -401,7 +405,7 @@ public:
   }
 };
 template<typename E>
-int ArrayType<E>::parseThis(std::wstring & input){
+int ArrayType<E>::parseJsonThis(std::wstring & input){
   if (!done.parse.begin_all){
     remove_ws(input);
     std::vector<E>::clear();
@@ -473,7 +477,7 @@ int ArrayType<E>::parseThis(std::wstring & input){
   return(0);
 }
 template<typename E>
-int ArrayType<E>::serializeThis(std::wstring & output){
+int ArrayType<E>::serializeJsonThis(std::wstring & output){
   if (!done.serialize.begin_all){
     if ((1+output.size())<output.max_size()){
       output+=L'[';
@@ -520,36 +524,36 @@ int ArrayType<E>::serializeThis(std::wstring & output){
   return(0);
 }
 template<typename E>
-int ArrayType<E>::infoThis(std::wstring & output){
+int ArrayType<E>::infoJsonThis(std::wstring & output){
   if (!info_ptr){
     info_ptr.reset(new ArrayInfo<E>);
-    info_ptr->hideAllJsonProp();
+    info_ptr->JOBJECT_HIDE_ALL();
     info_ptr->jsonType=get_type_name(json_type);
-    info_ptr->showJsonProp(info_ptr->jsonType);
+    info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
     DO_INFO(Base,jsValidate)
     DO_INFO(ArrayType<E>,minSize)
     DO_INFO(ArrayType<E>,maxSize)
-    info_ptr->showJsonProp(info_ptr->array);
+    info_ptr->JOBJECT_SHOW(info_ptr->array);
   }
   DO_JOB(info_ptr->serializeJson(output))
   info_ptr.reset(nullptr);
   return(0);
 }
 template<typename E>
-int ArrayType<E>::testThis(){
+int ArrayType<E>::testJsonThis(){
   std::size_t idx=0;
   bool e=false;
   std::ostringstream error;
-  if (minSize){//Jeśli jest minimalna liczba elementów.
-    if ((*minSize)>std::vector<E>::size()) {//Sprawdź minimalną liczbę elementów.
-      error<<"Nieprawidłowa liczba elementów JSON Array - powinna być większa/równa niż "<<(*minSize)<<"! ";
+  if (jsonParams_minSize){//Jeśli jest minimalna liczba elementów.
+    if ((*jsonParams_minSize)>std::vector<E>::size()) {//Sprawdź minimalną liczbę elementów.
+      error<<"Nieprawidłowa liczba elementów JSON Array - powinna być większa/równa niż "<<(*jsonParams_minSize)<<"! ";
       e=true;
     }
   }
-  if (maxSize){//Jeśli jest maksymalna liczba elementów.
-    if ((*maxSize)<std::vector<E>::size()) {//Sprawdź maksymalną liczbę elementów.
-      error<<"Nieprawidłowa liczba elementów JSON Array - powinna być mniejsza/równa niż "<<(*maxSize)<<"! ";
+  if (jsonParams_maxSize){//Jeśli jest maksymalna liczba elementów.
+    if ((*jsonParams_maxSize)<std::vector<E>::size()) {//Sprawdź maksymalną liczbę elementów.
+      error<<"Nieprawidłowa liczba elementów JSON Array - powinna być mniejsza/równa niż "<<(*jsonParams_maxSize)<<"! ";
       e=true;
     }
   }
@@ -570,8 +574,8 @@ int ArrayType<E>::testThis(){
 //===========================================
 class ObjectType1: public Base{
 private:
-  typedef std::map<std::string,Base*> prop_map_t;
-  typedef std::set<Base*> prop_set_t;
+  typedef std::map<std::string,std::size_t> prop_map_t;
+  typedef std::set<std::size_t> prop_set_t;
   struct done_t {
     int begin_all:1;
     int end_all:1;
@@ -594,21 +598,22 @@ private:
   prop_map_t prop_map;
   prop_set_t prop_mandatory;
   prop_set_t prop_hidden;
-  int parseThis(std::wstring & input);
-  int serializeThis(std::wstring & output);
-  int infoThis(std::wstring & output);
-  int testThis();
+  Base * getPropPointer(std::size_t offset);
+  std::size_t getPropOffset(Base * pointer);
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
 protected:
-  bool do_info_json=false;
-  void registerProp(Base & element,const std::string & name,bool mandatory=false);
-#define JOBJECT_PROP(element,...) registerProp(element,#element,##__VA_ARGS__);
+  bool jsonForceInfoInObject=false;
+  void registerProp(Base * element,const std::string & name,bool mandatory=false);
 public:
   ObjectType1(){
     json_type=json_type_object;
   }
   ObjectType1 & operator()() {return(*this);}
-  void hideJsonProp(Base & element);
-  void showJsonProp(Base & element);
+  void hideJsonProp(Base * element);
+  void showJsonProp(Base * element);
   void hideAllJsonProp();
   void showAllJsonProp();
   std::map<std::string,bool> getAllJsonProp();
@@ -617,15 +622,15 @@ template<class O>
 class ObjectType2: public ObjectType1{
 private:
   std::unique_ptr<ObjectInfo<O>> info_ptr;
-  int infoThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
 };
 template<class O>
-int ObjectType2<O>::infoThis(std::wstring & output){
+int ObjectType2<O>::infoJsonThis(std::wstring & output){
   if (!info_ptr){
     info_ptr.reset(new ObjectInfo<O>);
-    info_ptr->hideAllJsonProp();
+    info_ptr->JOBJECT_HIDE_ALL();
     info_ptr->jsonType=get_type_name(json_type);
-    info_ptr->showJsonProp(info_ptr->jsonType);
+    info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
     DO_INFO(Base,elementName)
     DO_INFO(Base,jsValidate)
     {
@@ -636,8 +641,8 @@ int ObjectType2<O>::infoThis(std::wstring & output){
         }
       }
     }
-    info_ptr->showJsonProp(info_ptr->mandatory);
-    info_ptr->showJsonProp(info_ptr->object);
+    info_ptr->JOBJECT_SHOW(info_ptr->mandatory);
+    info_ptr->JOBJECT_SHOW(info_ptr->object);
   }
   DO_JOB(info_ptr->serializeJson(output))
   info_ptr.reset(nullptr);
@@ -709,7 +714,12 @@ class ArrayInfo : public BaseInfo{
 public:
   NumberType<unsigned long long> minSize;
   NumberType<unsigned long long> maxSize;
-  E array;
+  class _ArrayInfo: public E {
+  public:
+    _ArrayInfo(){
+      E::jsonForceInfo=true;
+    }
+  } array;
   ArrayInfo(){
     JOBJECT_PROP(minSize)
     JOBJECT_PROP(maxSize)
@@ -723,7 +733,7 @@ public:
   class _ObjectInfo: public E {
   public:
     _ObjectInfo(){
-      E::do_info_json=true;
+      E::jsonForceInfoInObject=true;
     }
   } object;
   ObjectInfo(){
