@@ -139,14 +139,11 @@ std::wstring unescapeString(const std::wstring & input);
 //===========================================
 class Base{
 protected:
-  json_type_t json_type=json_type_null;
-  job_t beforeParse;
-  job_t afterParse;
-  job_t beforeSerialize;
-  job_t afterSerialize;
-  job_t extraTest;
-  //! Podmienia serializeJson na infoJson.
-  bool jsonForceInfo=false;
+  job_t jsonParams_beforeParse;
+  job_t jsonParams_afterParse;
+  job_t jsonParams_beforeSerialize;
+  job_t jsonParams_afterSerialize;
+  job_t jsonParams_extraTest;
   //! Nazwa elementu JSON (opcjonalnie).
   const std::string * jsonParams_elementName=nullptr;
   //! Opis skrócony elementu JSON (opcjonalnie).
@@ -155,6 +152,9 @@ protected:
   const std::vector<std::string> * jsonParams_elementDesc=nullptr;
   //! Kod (ciało funkcji) JS do walidowania zawartości (opcjonalnie).
   const std::string * jsonParams_jsValidate=nullptr;
+  //! Podmienia serializeJson na infoJson.
+  bool jsonForceInfo=false;
+  json_type_t json_type=json_type_null;
 protected:
   virtual int parseJsonThis(std::wstring & input)=0;
   virtual int serializeJsonThis(std::wstring & output)=0;

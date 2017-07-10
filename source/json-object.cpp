@@ -289,9 +289,9 @@ int Base::infoJson(std::string & output){
 }
 int Base::parseJson(std::wstring & input){
   try {
-    if (beforeParse) DO_JOB(beforeParse())
+    if (jsonParams_beforeParse) DO_JOB(jsonParams_beforeParse())
     DO_JOB(parseJsonThis(input))
-    if (afterParse) DO_JOB(afterParse())
+    if (jsonParams_afterParse) DO_JOB(jsonParams_afterParse())
   } catch(const std::invalid_argument& exc){
     std::ostringstream error;
     if (jsonParams_elementName) error<<"{"<<(*jsonParams_elementName)<<"} ";
@@ -305,9 +305,9 @@ int Base::serializeJson(std::wstring & output){
     if (jsonForceInfo){
       DO_JOB(infoJsonThis(output))
     } else {
-      if (beforeSerialize) DO_JOB(beforeSerialize())
+      if (jsonParams_beforeSerialize) DO_JOB(jsonParams_beforeSerialize())
       DO_JOB(serializeJsonThis(output))
-      if (afterSerialize) DO_JOB(afterSerialize())
+      if (jsonParams_afterSerialize) DO_JOB(jsonParams_afterSerialize())
     }
   } catch(const std::invalid_argument& exc){
     std::ostringstream error;
@@ -331,7 +331,7 @@ int Base::infoJson(std::wstring & output){
 int Base::testJson(){
   try {
     DO_JOB(testJsonThis())
-    if (extraTest) DO_JOB(extraTest())
+    if (jsonParams_extraTest) DO_JOB(jsonParams_extraTest())
   } catch(const std::invalid_argument& exc){
     std::ostringstream error;
     if (jsonParams_elementName) error<<"{"<<(*jsonParams_elementName)<<"} ";
