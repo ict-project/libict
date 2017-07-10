@@ -97,6 +97,7 @@ std::string get_type_name(json_type_t type){
     case json_type_string:return("string");
     case json_type_array:return("array");
     case json_type_object:return("object");
+    case json_type_mutable:return("mutable");
     default: break;
   }
   return("unknown");
@@ -485,11 +486,11 @@ int StringType::testJsonThis(){
   return(0);
 }
 //===========================================
-Base * ObjectType1::getPropPointer(std::size_t offset){
+Base * ObjectType0::getPropPointer(std::size_t offset){
   char * pointer=((char*)this)+offset;
   return((Base*)pointer);
 }
-std::size_t ObjectType1::getPropOffset(Base * pointer){
+std::size_t ObjectType0::getPropOffset(Base * pointer){
   std::size_t offset=((char*)pointer)-((char*)this);
   return(offset);
 }
@@ -735,6 +736,66 @@ std::map<std::string,bool> ObjectType1::getAllJsonProp(){
   return(m);
 }
 //===========================================
+int MutableType1::parseJsonThis(std::wstring & input){
+  throw std::invalid_argument("TODO");
+  return(0);
+}
+int MutableType1::serializeJsonThis(std::wstring & output){
+  for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
+    if (prop_selected==it->second) try{
+      if (it->second) {
+        DO_JOB(getPropPointer(it->second)->serializeJson(output))
+        return(0);
+      }
+    }catch(const std::invalid_argument& exc){
+      std::ostringstream error;
+      error<<"'"<<it->first<<"' / ";
+      error<<exc.what();
+      throw std::invalid_argument(error.str());
+    }
+  }
+  {
+    std::wstring o(_null_);
+    if ((o.size()+output.size())<output.max_size()){
+      output+=o;
+      return(0);
+    }
+    return(1);
+  }
+}
+int MutableType1::infoJsonThis(std::wstring & output){
+  return(0);
+}
+int MutableType1::testJsonThis(){
+  for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
+    if (prop_selected==it->second) try{
+      if (it->second) {
+        DO_JOB(getPropPointer(it->second)->testJson())
+        return(0);
+      }
+    }catch(const std::invalid_argument& exc){
+      std::ostringstream error;
+      error<<"'"<<it->first<<"' / ";
+      error<<exc.what();
+      throw std::invalid_argument(error.str());
+    }
+  }
+  throw std::logic_error("Brak wybranego typu elementu JSON !");
+  return(0);
+}
+void MutableType1::registerProp(Base * element,const std::string & name){
+  if (element){
+    std::size_t offset=getPropOffset(element);
+    prop_map[name]=offset;
+    if (prop_selected<0) prop_selected=offset;
+  }
+}
+void MutableType1::selectJsonProp(Base * element){
+  if (element){
+    prop_selected=getPropOffset(element);
+  }
+}
+//===========================================
 } }
 //===========================================
 #ifdef ENABLE_TESTING
@@ -939,7 +1000,7 @@ REGISTER_TEST(jobject,tc2){
     }
     while(arrayTest1.serializeJson(b)==1){}
     std::cerr<<"arrayTest1.serializeJson(b)>"<<b<<"<"<<std::endl;
-    
+
     if (out=arrayTest2.parseJson(b)) {
       std::cerr<<"ERROR: arrayTest2.parseJson(b): "<<out<<", '"<<b<<"'!"<<std::endl;
       return(1);
@@ -947,7 +1008,7 @@ REGISTER_TEST(jobject,tc2){
     b.clear();
     while(arrayTest2.serializeJson(b)==1){}
     std::cerr<<"arrayTest2.serializeJson(b)>"<<b<<"<"<<std::endl;
-    
+
     if (out=arrayTest2.testJson()) {
       std::cerr<<"ERROR: arrayTest2.testJson(): "<<out<<"!"<<std::endl;
       return(1);

@@ -53,6 +53,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define JOBJECT_SHOW(element) showJsonProp(&(this->element));
 #define JOBJECT_HIDE_ALL() hideAllJsonProp();
 #define JOBJECT_SHOW_ALL() showAllJsonProp();
+#define JOBJECT_SELECT(element) selectJsonProp(&(this->element));
 
 #define DO_JOB(operation)\
   switch(operation){\
@@ -74,7 +75,8 @@ enum json_type_t {
   json_type_number,
   json_type_string,
   json_type_array,
-  json_type_object
+  json_type_object,
+  json_type_mutable
 };
 typedef std::function<int(void)> job_t;
 template<typename T> class NumberType;
@@ -90,6 +92,7 @@ class NullInfo;
 class StringInfo;
 template<class E> class ArrayInfo;
 template<class E> class ObjectInfo;
+template<class E> class MutableInfo;
 //===========================================
 void remove_ws(std::wstring & input);
 bool get_json_element(std::wstring & input,std::wstring & output);
@@ -572,9 +575,15 @@ int ArrayType<E>::testJsonThis(){
   return(0);
 }
 //===========================================
-class ObjectType1: public Base{
-private:
+class ObjectType0 {
+protected:
   typedef std::map<std::string,std::size_t> prop_map_t;
+  prop_map_t prop_map;
+  Base * getPropPointer(std::size_t offset);
+  std::size_t getPropOffset(Base * pointer);
+};
+class ObjectType1: public Base, private ObjectType0 {
+private:
   typedef std::set<std::size_t> prop_set_t;
   struct done_t {
     int begin_all:1;
@@ -595,11 +604,8 @@ private:
   std::size_t parseIndex=0;
   std::size_t serializeIndex=0;
   prop_map_t::iterator serializeIterator;
-  prop_map_t prop_map;
   prop_set_t prop_mandatory;
   prop_set_t prop_hidden;
-  Base * getPropPointer(std::size_t offset);
-  std::size_t getPropOffset(Base * pointer);
   int parseJsonThis(std::wstring & input);
   int serializeJsonThis(std::wstring & output);
   int infoJsonThis(std::wstring & output);
@@ -643,6 +649,46 @@ int ObjectType2<O>::infoJsonThis(std::wstring & output){
     }
     info_ptr->JOBJECT_SHOW(info_ptr->mandatory);
     info_ptr->JOBJECT_SHOW(info_ptr->object);
+  }
+  DO_JOB(info_ptr->serializeJson(output))
+  info_ptr.reset(nullptr);
+  return(0);
+}
+//===========================================
+class MutableType1: public Base, private ObjectType0 {
+private:
+  typedef std::vector<std::size_t> prop_list_t;
+  prop_list_t prop_list;
+  std::size_t prop_selected=-1;
+  int parseJsonThis(std::wstring & input);
+  int serializeJsonThis(std::wstring & output);
+  int infoJsonThis(std::wstring & output);
+  int testJsonThis();
+protected:
+  void registerProp(Base * element,const std::string & name);
+public:
+  MutableType1(){
+    json_type=json_type_mutable;
+  }
+  MutableType1 & operator()() {return(*this);}
+  void selectJsonProp(Base * element);
+};
+template<class O>
+class MutableType2: public MutableType1{
+private:
+  std::unique_ptr<MutableInfo<O>> info_ptr;
+  int infoJsonThis(std::wstring & output);
+};
+template<class O>
+int MutableType2<O>::infoJsonThis(std::wstring & output){
+  if (!info_ptr){
+    info_ptr.reset(new MutableInfo<O>);
+    info_ptr->JOBJECT_HIDE_ALL();
+    info_ptr->jsonType=get_type_name(json_type);
+    info_ptr->JOBJECT_SHOW(info_ptr->jsonType);
+    DO_INFO(Base,elementName)
+    DO_INFO(Base,jsValidate)
+    info_ptr->JOBJECT_SHOW(info_ptr->mut);
   }
   DO_JOB(info_ptr->serializeJson(output))
   info_ptr.reset(nullptr);
@@ -739,6 +785,19 @@ public:
   ObjectInfo(){
     JOBJECT_PROP(mandatory)
     JOBJECT_PROP(object)
+  }
+};
+template<class E>
+class MutableInfo : public BaseInfo{
+public:
+  class _MutableInfo: public E {
+  public:
+    _MutableInfo(){
+      E::jsonForceInfoInObject=true;
+    }
+  } mut;
+  MutableInfo(){
+    JOBJECT_PROP(mut)
   }
 };
 //===========================================
