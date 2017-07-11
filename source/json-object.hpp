@@ -174,9 +174,10 @@ public:
 template<typename T>
 class BaseType: public Base{
 protected:
-  T value;
+  typedef T value_t;
+  value_t value;
 public:
-  T & operator()() {return(value);}
+  value_t & operator()() {return(value);}
 };
 //===========================================
 template<typename T>
@@ -322,6 +323,7 @@ private:
   int infoJsonThis(std::wstring & output);
   int testJsonThis();
 protected:
+  typedef std::string value_t;
   //! Minimalna długość, którą String musi spełniać (opcjonalnie).
   const std::size_t * jsonParams_minLen=nullptr;
   //! Maksymalna długość, którą String musi spełniać (opcjonalnie).
@@ -628,6 +630,7 @@ public:
   void showJsonProp(Base * element);
   void hideAllJsonProp();
   void showAllJsonProp();
+  bool isJsonPresent(Base * element);
   std::map<std::string,bool> getAllJsonProp();
 };
 template<class O>

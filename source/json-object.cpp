@@ -731,6 +731,13 @@ void ObjectType1::hideAllJsonProp(){
 void ObjectType1::showAllJsonProp(){
   prop_hidden.clear();
 }
+bool ObjectType1::isJsonPresent(Base * element){
+  if (element){
+    std::size_t offset=getPropOffset(element);
+    return(prop_hidden.count(offset)?false:true);
+  }
+  return(false);
+}
 std::map<std::string,bool> ObjectType1::getAllJsonProp(){
   std::map<std::string,bool> m;
   for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
