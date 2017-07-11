@@ -805,6 +805,13 @@ void MutableType1::selectJsonProp(Base * element){
     prop_selected=getPropOffset(element);
   }
 }
+bool MutableType1::isJsonPresent(Base * element){
+  if (element){
+    std::size_t offset=getPropOffset(element);
+    return(prop_selected==offset);
+  }
+  return(false);
+}
 //===========================================
 } }
 //===========================================

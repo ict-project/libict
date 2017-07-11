@@ -677,6 +677,7 @@ private:
   int testJsonThis();
 protected:
   void registerProp(Base * element,const std::string & name);
+  bool isJsonPresent(Base * element);
 public:
   MutableType1(){
     json_type=json_type_mutable;
@@ -832,6 +833,7 @@ typedef NullType null_t;
 typedef StringType string_t;
 template<class E> class array_t : public ArrayType<E>{};
 template<class O> class object_t : public ObjectType2<O>{};
+template<class O> class mutable_t : public MutableType2<O>{};
 //===========================================
 } }
 //===========================================
