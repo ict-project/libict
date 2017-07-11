@@ -429,7 +429,7 @@ int ArrayType<E>::parseJsonThis(std::wstring & input){
     } else return(1);
     done.parse.begin_all=1;
   }
-  for (;;parseIndex++){
+  for (;input.front()!=L']';parseIndex++){
     if (!done.parse.begin_el){
       remove_ws(input);
       done.parse.begin_el=1;
