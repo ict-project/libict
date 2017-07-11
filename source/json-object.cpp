@@ -754,7 +754,11 @@ int MutableType1::serializeJsonThis(std::wstring & output){
   for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
     if (prop_selected==it->second) try{
       if (it->second) {
-        DO_JOB(getPropPointer(it->second)->serializeJson(output))
+        if (jsonForceInfoInMutable){
+          DO_JOB(getPropPointer(it->second)->infoJson(output))
+        } else {
+          DO_JOB(getPropPointer(it->second)->serializeJson(output))
+        }
         return(0);
       }
     }catch(const std::invalid_argument& exc){
@@ -916,9 +920,16 @@ public:
     JOBJECT_NAME("ArrayTest")
   }
 };
+class MutableTest: public ict::jobject::mutable_t<MutableTest>{
+public:
+  MutableTest(){
+    JOBJECT_NAME("MutableTest")
+  }
+};
 REGISTER_TEST(jobject,tc1){
   try{
     std::string b;
+    MutableTest mutableTest;
     ArrayTest arrayTest;
     arrayTest.emplace_back();
     arrayTest.emplace_back();

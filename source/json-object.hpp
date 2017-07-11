@@ -676,6 +676,7 @@ private:
   int infoJsonThis(std::wstring & output);
   int testJsonThis();
 protected:
+  bool jsonForceInfoInMutable=false;
   void registerProp(Base * element,const std::string & name);
   bool isJsonPresent(Base * element);
 public:
@@ -809,7 +810,7 @@ public:
   class _MutableInfo: public E {
   public:
     _MutableInfo(){
-      E::jsonForceInfoInObject=true;
+      E::jsonForceInfoInMutable=true;
     }
   } mut;
   MutableInfo(){
