@@ -691,7 +691,7 @@ int ObjectType1::testJsonThis(){
   }
   if (e) throw std::invalid_argument(error.str());
   for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
-    try{
+    if (!prop_hidden.count(it->second)) try{
       if (it->second) {
         DO_JOB(getPropPointer(it->second)->testJson())
       }
