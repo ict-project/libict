@@ -206,6 +206,12 @@ public:
     BaseType<T>::value=0;
     BaseType<T>::json_type=json_type_number;
   }
+  void from_string(const std::string & input){
+    number::getFromString(input,BaseType<T>::value);
+  }
+  void to_string(std::string & output) const{
+    number::putToString(output,BaseType<T>::value);
+  }
 };
 template<typename T>
 int NumberType<T>::parseJsonThis(std::wstring & input){
