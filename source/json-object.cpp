@@ -481,7 +481,7 @@ int StringType::testJsonThis(){
   }
   if (jsonParams_regex){//Jeśli jest wyrażenie regularne.
     std::regex r(*jsonParams_regex);
-    LOGGER_DEBUG<<__LOGGER__<<"regex '"<<(*jsonParams_regex)<<"' on '"<<(*this)<<std::endl;
+    LOGGER_DEBUG<<__LOGGER__<<"regex '"<<(*jsonParams_regex)<<"'"<<std::endl;
     if (!std::regex_match(*this,r)) {//Sprawdź wyrażenie regularne.
       error<<"Nieprawidłowy format (regex) elementu JSON String - powinien spełniać \""<<(*jsonParams_regex)<<"\"! ";
       e=true;
