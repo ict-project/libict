@@ -364,6 +364,8 @@ public:
     assign(n,c);
     json_type=json_type_string;
   }
+  StringType & operator=(const std::string & s) {assign(s);}
+  StringType & operator=(const char * s) {assign(s);}
   StringType & operator()() {return(*this);}
 };
 //===========================================
