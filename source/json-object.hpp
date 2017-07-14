@@ -344,6 +344,10 @@ public:
   StringType(){
     json_type=json_type_string;
   }
+  StringType(const StringType & s){
+    assign(s);
+    json_type=json_type_string;
+  }
   StringType(const std::string & s){
     assign(s);
     json_type=json_type_string;
@@ -364,8 +368,9 @@ public:
     assign(n,c);
     json_type=json_type_string;
   }
-  StringType & operator=(const std::string & s) {assign(s);}
-  StringType & operator=(const char * s) {assign(s);}
+  StringType & operator=(const StringType & s) {assign(s);return(*this);}
+  StringType & operator=(const std::string & s) {assign(s);return(*this);}
+  StringType & operator=(const char * s) {assign(s);return(*this);}
   StringType & operator()() {return(*this);}
 };
 //===========================================
