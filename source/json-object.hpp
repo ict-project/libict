@@ -125,7 +125,27 @@ int putToString(std::wstring & output,T & input){
     error<<"Niepoprawna wartość JSON Number ('"<<input<<"') - błąd serializacji!";
     throw std::invalid_argument(error.str());
   }
-  return(1);
+  return(0);
+}
+template<typename T>
+int getFromString(const std::string & input,T & output){
+  try{
+    std::istringstream s;
+    s.str(input);
+    s>>output;
+  }catch(...){
+  }
+  return(0);
+}
+template<typename T>
+int putToString(std::string & output,T & input){
+  try{
+    std::ostringstream s;
+    s<<input;
+    output=s.str();
+  }catch(...){
+  }
+  return(0);
 }
 //===========================================
 }
