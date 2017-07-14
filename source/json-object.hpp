@@ -391,7 +391,7 @@ public:
   StringType & operator=(const StringType & s) {assign(s);return(*this);}
   StringType & operator=(const std::string & s) {assign(s);return(*this);}
   StringType & operator=(const char * s) {assign(s);return(*this);}
-  StringType & operator()() {return(*this);}
+  std::string & operator()() {return(*this);}
 };
 //===========================================
 template<class E>
