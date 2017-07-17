@@ -618,14 +618,6 @@ int ArrayType<E>::testJsonThis(){
 //===========================================
 class ObjectType0 {
 protected:
-  typedef std::map<std::string,std::size_t> prop_map_t;
-  prop_map_t prop_map;
-  Base * getPropPointer(std::size_t offset);
-  std::size_t getPropOffset(Base * pointer);
-};
-class ObjectType1: public Base, private ObjectType0 {
-private:
-  typedef std::set<std::size_t> prop_set_t;
   struct done_t {
     int begin_all:1;
     int end_all:1;
@@ -635,6 +627,14 @@ private:
     int el_value:1;
     int end_el:1;
   };
+  typedef std::map<std::string,std::size_t> prop_map_t;
+  prop_map_t prop_map;
+  Base * getPropPointer(std::size_t offset);
+  std::size_t getPropOffset(Base * pointer);
+};
+class ObjectType1: public Base, private ObjectType0 {
+private:
+  typedef std::set<std::size_t> prop_set_t;
   struct {
     done_t parse;
     done_t serialize;
@@ -649,7 +649,7 @@ private:
   prop_set_t prop_hidden;
   int parseJsonThis(std::wstring & input);
   int serializeJsonThis(std::wstring & output);
-  int infoJsonThis(std::wstring & output);
+  virtual int infoJsonThis(std::wstring & output);
   int testJsonThis();
 protected:
   bool jsonForceInfoInObject=false;
@@ -699,17 +699,16 @@ int ObjectType2<O>::infoJsonThis(std::wstring & output){
   return(0);
 }
 //===========================================
-class MutableType1: public Base, private ObjectType0 {
+class MutableType1: public Base, protected ObjectType0 {
 private:
   typedef std::vector<std::size_t> prop_list_t;
   prop_list_t prop_list;
   std::size_t prop_selected=-1;
   int parseJsonThis(std::wstring & input);
   int serializeJsonThis(std::wstring & output);
-  int infoJsonThis(std::wstring & output);
+  virtual int infoJsonThis(std::wstring & output);
   int testJsonThis();
 protected:
-  bool jsonForceInfoInMutable=false;
   void registerProp(Base * element,const std::string & name);
   bool isJsonPresent(Base * element);
 public:
@@ -723,7 +722,7 @@ template<class O>
 class MutableType2: public MutableType1{
 private:
   std::unique_ptr<MutableInfo<O>> info_ptr;
-  int infoJsonThis(std::wstring & output);
+  virtual int infoJsonThis(std::wstring & output);
 };
 template<class O>
 int MutableType2<O>::infoJsonThis(std::wstring & output){
@@ -838,18 +837,90 @@ public:
   }
 };
 template<class E>
+class _MutableInfo: public E {
+protected:
+  struct {
+    typename E::done_t serialize;
+  } done={{0}};
+  std::unique_ptr<StringType> serialize_name;
+  std::size_t serializeIndex=0;
+  typename E::prop_map_t::iterator serializeIterator;
+  int serializeJsonThis(std::wstring & output);
+public:
+  _MutableInfo(){}
+};
+template<class E>
 class MutableInfo : public BaseInfo{
 public:
-  class _MutableInfo: public E {
-  public:
-    _MutableInfo(){
-      E::jsonForceInfoInMutable=true;
-    }
-  } mut;
+  _MutableInfo<E> mut;
   MutableInfo(){
     JOBJECT_PROP(mut)
   }
 };
+template<class E>
+int _MutableInfo<E>::serializeJsonThis(std::wstring & output){
+  if (!serialize_name) serialize_name.reset(new StringType);
+  if (!done.serialize.begin_all){
+    serializeIterator=E::prop_map.begin();
+    if ((1+output.size())<output.max_size()){
+      output+=L'{';
+    } else return(1);
+    done.serialize.begin_all=1;
+  }
+  for (;serializeIterator!=E::prop_map.end();++serializeIterator) {
+    if (!done.serialize.begin_el){
+      if (serializeIndex) {
+        if ((1+output.size())<output.max_size()){
+          output+=L',';
+        } else return(1);
+      }
+      done.serialize.begin_el=1;
+    }
+    if (!done.serialize.el_name){
+      (*serialize_name)=serializeIterator->first;
+      DO_JOB(serialize_name->serializeJson(output))
+      done.serialize.el_name=1;
+    }
+    if (!done.serialize.between_el){
+      if ((1+output.size())<output.max_size()){
+        output+=L':';
+      } else return(1);
+      done.serialize.between_el=1;
+    }
+    if (!done.serialize.el_value){
+      try{
+        DO_JOB(E::getPropPointer(serializeIterator->second)->infoJson(output))
+      } catch(const std::invalid_argument& exc){
+        std::ostringstream error;
+        error<<"'"<<(*serialize_name)<<"' / ";
+        error<<exc.what();
+        throw std::invalid_argument(error.str());
+      }
+      done.serialize.el_value=1;
+    }
+    if (!done.serialize.end_el){
+      done.serialize.end_el=1;
+    }
+    done.serialize.begin_el=0;
+    done.serialize.el_name=0;
+    done.serialize.between_el=0;
+    done.serialize.el_value=0;
+    done.serialize.end_el=0;
+    serializeIndex++;
+  }
+  if (!done.serialize.end_all){
+    if ((1+output.size())<output.max_size()){
+      output+=L'}';
+    } else return(1);
+    done.serialize.end_all=1;
+  }
+  //========================
+  done.serialize.begin_all=0;
+  done.serialize.end_all=0;
+  serializeIndex=0;
+  serialize_name.reset(nullptr);
+  return(0);
+}
 //===========================================
 #undef DO_JOB
 #undef DO_INFO

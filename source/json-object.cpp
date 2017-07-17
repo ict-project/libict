@@ -756,11 +756,7 @@ int MutableType1::serializeJsonThis(std::wstring & output){
   for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
     if (prop_selected==it->second) try{
       if (it->second) {
-        if (jsonForceInfoInMutable){
-          DO_JOB(getPropPointer(it->second)->infoJson(output))
-        } else {
-          DO_JOB(getPropPointer(it->second)->serializeJson(output))
-        }
+        DO_JOB(getPropPointer(it->second)->serializeJson(output))
         return(0);
       }
     }catch(const std::invalid_argument& exc){
