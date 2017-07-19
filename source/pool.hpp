@@ -197,6 +197,10 @@ public:
   //!
   void clean();
   //!
+  //! Kasuje wszystkie elementy puli.
+  //!
+  void clear();
+  //!
   //! Zwraca aktualny rozmiar puli.
   //!
   std::size_t size();
