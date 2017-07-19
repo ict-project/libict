@@ -104,6 +104,7 @@ protected:
 
 class DistributorBase{
 private:
+  mutable std::mutex mutex;
   uint32_t max_size=0;
   uint32_t min_size=0;
   uint32_t max_use_count=0;
@@ -131,7 +132,6 @@ private:
   //! Zwiększa licznik użycia.
   bool useItem(std::size_t k);
 protected:
-  mutable std::mutex mutex;
   DistributorBase(uint32_t maxSize=0,uint32_t minSize=0,uint32_t maxUseCount=0,uint32_t maxLifeTime=0,uint32_t maxIdleTime=0);
   ~DistributorBase();
   //!
@@ -214,6 +214,7 @@ public:
 private:
   typedef std::map<std::size_t,ItemPtr<T>> item_list_t;
   typedef std::queue<job_t> job_queue_t;
+  mutable std::mutex mutex;
   item_creator_t item_creator;
   item_list_t item_list;
   job_queue_t job_queue;
