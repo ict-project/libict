@@ -104,7 +104,7 @@ protected:
 
 class DistributorBase{
 private:
-  mutable std::mutex mutex;
+  //mutable std::mutex mutex;
   uint32_t max_size=0;
   uint32_t min_size=0;
   uint32_t max_use_count=0;
@@ -214,7 +214,7 @@ public:
 private:
   typedef std::map<std::size_t,ItemPtr<T>> item_list_t;
   typedef std::queue<job_t> job_queue_t;
-  mutable std::mutex mutex;
+  //mutable std::mutex mutex;
   item_creator_t item_creator;
   item_list_t item_list;
   job_queue_t job_queue;
@@ -245,7 +245,7 @@ public:
   Distributor(item_creator_t creator,uint32_t maxSize=0,uint32_t minSize=0,uint32_t maxUseCount=0,uint32_t maxLifeTime=0,uint32_t maxIdleTime=0):
     DistributorBase(maxSize,minSize,maxUseCount,maxLifeTime,maxIdleTime),item_creator(creator){}
   ~Distributor(){
-    std::unique_lock<std::mutex> lock(mutex);
+    //std::unique_lock<std::mutex> lock(mutex);
     ItemPtr<T> item;
     while(!job_queue.empty()){
       job_queue.front()(item);
@@ -259,7 +259,7 @@ public:
     ItemPtr<T> item;
     job_t job;
     {
-      std::unique_lock<std::mutex> lock(mutex);
+      //std::unique_lock<std::mutex> lock(mutex);
       if (!job_queue.empty()){
         std::size_t k=selectItem();
         if (item_list.count(k)){
@@ -275,7 +275,7 @@ public:
   void addJob(job_t job){
     ItemPtr<T> item;
     {
-      std::unique_lock<std::mutex> lock(mutex);
+      //std::unique_lock<std::mutex> lock(mutex);
       std::size_t k=selectItem();
       if (item_list.count(k)){
         item=item_list[k];

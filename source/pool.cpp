@@ -147,31 +147,31 @@ std::size_t DistributorBase::selectItem(){
   return(-1);
 }
 void DistributorBase::maxSize(uint32_t value){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   max_size=value;
   if (value) if (min_size>max_size) min_size=max_size;
 }
 void DistributorBase::minSize(uint32_t value){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   min_size=value;
   if (value) if (max_size<min_size) max_size=min_size;
 }
 void DistributorBase::maxUseCount(uint32_t value){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   max_use_count=value;
 }
 void DistributorBase::maxLifeTime(uint32_t value){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   max_life_time=value;
   if (value) if (max_idle_time>max_life_time) max_idle_time=max_idle_time;
 }
 void DistributorBase::maxIdleTime(uint32_t value){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   max_idle_time=value;
   if (value) if (max_life_time<max_idle_time) max_life_time=max_idle_time;
 }
 void DistributorBase::clean(){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
   for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
     if (!testItem(it->first)){
@@ -181,7 +181,7 @@ void DistributorBase::clean(){
   for (auto & item : deleteList) deleteItem(item);//Kasuję zbedne elementy.
 }
 void DistributorBase::clear(){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
   for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
     deleteList.insert(it->first);
@@ -189,7 +189,7 @@ void DistributorBase::clear(){
   for (auto & item : deleteList) deleteItem(item);//Kasuję elementy.
 }
 std::size_t DistributorBase::size(){
-  std::unique_lock<std::mutex> lock(mutex);
+  //std::unique_lock<std::mutex> lock(mutex);
   return(item_list.size());
 }
 //============================================
