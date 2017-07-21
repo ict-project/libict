@@ -121,6 +121,7 @@ bool DistributorBase::useItem(std::size_t k){
 }
 std::size_t DistributorBase::selectItem(){
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
+  std::size_t selectedItem=-1;
   std::size_t s=item_list.size();
   if (s<min_size){//Jeśli rozmiar puli mniejszy od wymaganego, to tworzę nowy element.
     std::size_t k=getNewIndex();
@@ -131,15 +132,16 @@ std::size_t DistributorBase::selectItem(){
   }
   for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie wolnego elementu.
     if (testItem(it->first)){
-      if (itemReady(it->first)){
-        useItem(it->first);
-        return(it->first);
-      }
+      if (itemReady(it->first)) selectedItem=it->first;
     } else {
       deleteList.insert(it->first);
     }
   }
   for (auto & item : deleteList) deleteItem(item);//Kasuję zbedne elementy.
+  if (selectedItem!=-1){
+    useItem(selectedItem);
+    return(selectedItem);
+  }
   if ((max_size==0)||(s<max_size)){//Jeśli rozmiar puli mniejszy od dozwolonego, to tworzę nowy element.
     std::size_t k=getNewIndex();
     if (createItem(k)){
