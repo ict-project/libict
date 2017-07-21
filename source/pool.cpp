@@ -86,10 +86,13 @@ bool DistributorBase::deleteItem(std::size_t k){
     LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(false);
   }
-  item_list.erase(k);
-  if (itemDelete(k)){
-    LOGGER_DEBUG<<__LOGGER__<<"Usunięto element puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
-    return(true);
+  {
+    item_t tmp=item_list.at(k);
+    item_list.erase(k);
+    if (itemDelete(k)){
+      LOGGER_DEBUG<<__LOGGER__<<"Usunięto element puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<",ct="<<tmp.creation_time<<",ut="<<tmp.last_use_time<<",uc="<<tmp.use_count<<")!"<<std::endl;
+      return(true);
+    }
   }
   LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
