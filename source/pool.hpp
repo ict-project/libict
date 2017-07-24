@@ -287,6 +287,10 @@ public:
     if (item) item->setDistributor(this);
     if (job) job(item);
   }
+  std::size_t queueSize(){
+    std::unique_lock<std::mutex> lock(mutex);
+    return(job_queue.size());
+  }
 };
 //============================================
 }}
