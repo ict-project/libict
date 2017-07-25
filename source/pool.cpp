@@ -184,12 +184,14 @@ void DistributorBase::clean(){
   {
     std::unique_lock<std::mutex> lock(mutex);
     for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
-      if (!testItem(it->first)){
-        deleteList.insert(it->first);
-      }
+      deleteList.insert(it->first);
     }
   }
-  for (auto & item : deleteList) deleteItem(item);//Kasuję zbedne elementy.
+  for (auto & item : deleteList) {
+    if (!testItem(item)){
+      deleteItem(item);//Kasuję zbedne elementy.
+    }
+  }
 }
 void DistributorBase::clear(){
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
