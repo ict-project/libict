@@ -274,6 +274,7 @@ public:
   }
   void addJob(job_t job){
     ItemPtr<T> item;
+    clean();
     {
       std::unique_lock<std::mutex> lock(mutex);
       std::size_t k=selectItem();
