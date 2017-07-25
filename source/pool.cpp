@@ -120,6 +120,7 @@ bool DistributorBase::useItem(std::size_t k){
   return(false);
 }
 std::size_t DistributorBase::selectItem(){
+  std::unique_lock<std::mutex> lock(mutex);
   std::size_t s=item_list.size();
   if (s<min_size){//Jeśli rozmiar puli mniejszy od wymaganego, to tworzę nowy element.
     std::size_t k=getNewIndex();
