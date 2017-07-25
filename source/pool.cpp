@@ -57,6 +57,7 @@ DistributorBase::~DistributorBase(){
   LOGGER_INFO<<__LOGGER__<<"Usunięto pulę (p="<<this<<")."<<std::endl;
 }
 std::size_t DistributorBase::getNewIndex(){
+  std::unique_lock<std::mutex> lock(mutex);
   if (item_list.size()){
     std::size_t k=0;
     for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){
@@ -69,8 +70,9 @@ std::size_t DistributorBase::getNewIndex(){
   }
 }
 bool DistributorBase::createItem(std::size_t k){
+  std::unique_lock<std::mutex> lock(mutex);
   if (item_list.count(k)){
-    LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
+    LOGGER_DEBUG<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(false);
   }
   if (itemCreate(k)){
@@ -78,12 +80,13 @@ bool DistributorBase::createItem(std::size_t k){
     LOGGER_DEBUG<<__LOGGER__<<"Utworzono element puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
+  LOGGER_DEBUG<<__LOGGER__<<"Błąd utworzenia elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::deleteItem(std::size_t k){
+  std::unique_lock<std::mutex> lock(mutex);
   if (!item_list.count(k)){
-    LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
+    LOGGER_DEBUG<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
     return(false);
   }
   {
@@ -94,10 +97,11 @@ bool DistributorBase::deleteItem(std::size_t k){
       return(true);
     }
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
+  LOGGER_DEBUG<<__LOGGER__<<"Błąd usuwania elementu puli (k="<<k<<",p="<<this<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::testItem(std::size_t k){
+  std::unique_lock<std::mutex> lock(mutex);
   if (item_list.count(k)){
     const item_t & item(item_list.at(k));
     ict::time::TimeInfo now;
@@ -106,22 +110,21 @@ bool DistributorBase::testItem(std::size_t k){
     if (max_use_count) if (max_use_count<item.use_count) return(false);
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd testowania elementu puli (k="<<k<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 bool DistributorBase::useItem(std::size_t k){
+  std::unique_lock<std::mutex> lock(mutex);
   if (item_list.count(k)){
     item_t & item(item_list[k]);
     item_list[k].last_use_time.setLocalTime();
     item_list[k].use_count++;
     return(true);
   }
-  LOGGER_ERR<<__LOGGER__<<"Błąd użycia elementu puli (k="<<k<<",s="<<item_list.size()<<")!"<<std::endl;
   return(false);
 }
 std::size_t DistributorBase::selectItem(){
-  std::unique_lock<std::mutex> lock(mutex);
-  std::size_t s=item_list.size();
+  std::set<std::size_t> selectList;
+  std::size_t s=size();
   if (s<min_size){//Jeśli rozmiar puli mniejszy od wymaganego, to tworzę nowy element.
     std::size_t k=getNewIndex();
     if (createItem(k)){
@@ -129,11 +132,17 @@ std::size_t DistributorBase::selectItem(){
       return(k);
     }
   }
-  for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie wolnego elementu.
-    if (testItem(it->first)){
-      if (itemReady(it->first)) {
-        useItem(it->first);
-        return(it->first);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie wolnego elementu.
+      selectList.insert(it->first);
+    }
+  }
+  for (auto & item : selectList) {
+    if (testItem(item)){
+      if (itemReady(item)) {
+        useItem(item);
+        return(item);
       }
     }
   }
@@ -171,20 +180,24 @@ void DistributorBase::maxIdleTime(uint32_t value){
   if (value) if (max_life_time<max_idle_time) max_life_time=max_idle_time;
 }
 void DistributorBase::clean(){
-  std::unique_lock<std::mutex> lock(mutex);
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
-  for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
-    if (!testItem(it->first)){
-      deleteList.insert(it->first);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
+      if (!testItem(it->first)){
+        deleteList.insert(it->first);
+      }
     }
   }
   for (auto & item : deleteList) deleteItem(item);//Kasuję zbedne elementy.
 }
 void DistributorBase::clear(){
-  std::unique_lock<std::mutex> lock(mutex);
   std::set<std::size_t> deleteList;// Lista elementów do usunięcia.
-  for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
-    deleteList.insert(it->first);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    for (item_list_t::const_iterator it=item_list.cbegin();it!=item_list.cend();++it){//Wyszukiwanie.
+      deleteList.insert(it->first);
+    }
   }
   for (auto & item : deleteList) deleteItem(item);//Kasuję elementy.
 }
