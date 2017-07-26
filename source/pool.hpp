@@ -273,7 +273,10 @@ public:
                   job_queue.pop();
                 }
               }
-              if (job) job(item_list[k]);//Przekaż element do zadania.
+              if (job) {
+                item_list[k]->setDistributor(this);
+                job(item_list[k]);//Przekaż element do zadania.
+              }
               job=nullptr;
               if(!queueSize()) break;//Dopóki w kolejce coś jest.
             }
