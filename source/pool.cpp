@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
+#include <unistd.h>
 #endif
 //============================================
 namespace ict { namespace pool {
@@ -236,6 +237,7 @@ REGISTER_TEST(pool,tc1){
     pool.addJob([](ict::pool::ItemPtr<TestItem> & item){
       item->doPing();
     });
+    usleep(100000);
     if (pool.size()!=1){
       std::cout<<" Błąd!!!"<<std::endl;
       std::cout<<" size="<<pool.size()<<std::endl;
@@ -259,6 +261,7 @@ REGISTER_TEST(pool,tc2){
         items.insert(item);
         item->doPing();
       });
+      usleep(100000);
       if (pool.size()!=(k+1)){
         std::cout<<" Błąd!!!"<<std::endl;
         std::cout<<" size="<<pool.size()<<std::endl;
@@ -285,6 +288,7 @@ REGISTER_TEST(pool,tc3){
         items.insert(item);
         item->doPing();
       });
+      usleep(100000);
       if (k<5){
         if (pool.size()!=(k+1)){
           std::cout<<" Błąd!!!"<<std::endl;
@@ -316,6 +320,7 @@ REGISTER_TEST(pool,tc4){
     pool.addJob([](ict::pool::ItemPtr<TestItem> & item){
       item->doPing();
     });
+    usleep(100000);
     if (k<5){
       if (pool.size()!=(k+1)){
         std::cout<<" Błąd!!!"<<std::endl;

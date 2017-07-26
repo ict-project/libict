@@ -54,6 +54,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <queue>
 #include <mutex>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
 //============================================
 namespace ict { namespace pool {
 //============================================
@@ -101,7 +104,7 @@ protected:
     distributor=nullptr;
   }
 };
-
+//============================================
 class DistributorBase{
 private:
   mutable std::mutex mutex;
@@ -214,11 +217,16 @@ public:
 private:
   typedef std::map<std::size_t,ItemPtr<T>> item_list_t;
   typedef std::queue<job_t> job_queue_t;
-  mutable std::mutex mutex;
+  std::atomic<bool> working;
+  std::condition_variable cv;
+  std::thread thread;
   item_creator_t item_creator;
+  mutable std::mutex mutex_list;
   item_list_t item_list;
+  mutable std::mutex mutex_queue;
   job_queue_t job_queue;
   bool itemCreate(std::size_t k){
+    std::unique_lock<std::mutex> lock(mutex_list);
     if (item_list.count(k)){
       return(false);
     } else {
@@ -229,6 +237,7 @@ private:
     return(true);
   }
   bool itemDelete(std::size_t k){
+    std::unique_lock<std::mutex> lock(mutex_list);
     if (item_list.count(k)){
       item_list.erase(k);
       return(true);
@@ -236,6 +245,7 @@ private:
     return(false);
   }
   bool itemReady(std::size_t k){
+    std::unique_lock<std::mutex> lock(mutex_list);
     if (item_list.count(k)){
       return(item_list.at(k).unique());
     }
@@ -243,53 +253,64 @@ private:
   }
 public:
   Distributor(item_creator_t creator,uint32_t maxSize=0,uint32_t minSize=0,uint32_t maxUseCount=0,uint32_t maxLifeTime=0,uint32_t maxIdleTime=0):
-    DistributorBase(maxSize,minSize,maxUseCount,maxLifeTime,maxIdleTime),item_creator(creator){}
+    DistributorBase(maxSize,minSize,maxUseCount,maxLifeTime,maxIdleTime),item_creator(creator),working(true){
+      //Uruchomienie wątku.
+      thread=std::thread(
+        [this](){
+          while(working.load()){
+            std::size_t k=-1;
+            job_t job;
+            {//Oczekiwanie na zdarzenie
+              std::unique_lock<std::mutex> lock_queue(mutex_queue);
+              while (working.load()&&(!job_queue.size())) cv.wait(lock_queue);
+            }
+            if(queueSize()) while ((k=selectItem())!=-1){//Dopóki są wolne elementy.
+              std::unique_lock<std::mutex> lock_list(mutex_list);
+              if (item_list.count(k)){//Jeśli element istnieje - pobierz z kolejki zadanie.
+                std::unique_lock<std::mutex> lock_queue(mutex_queue);
+                if (job_queue.size()){
+                  job=job_queue.front();
+                  job_queue.pop();
+                }
+              }
+              if (job) job(item_list[k]);//Przekaż element do zadania.
+              job=nullptr;
+              if(!queueSize()) break;//Dopóki w kolejce coś jest.
+            }
+          }
+        }
+      );
+    }
   ~Distributor(){
-    std::unique_lock<std::mutex> lock(mutex);
-    ItemPtr<T> item;
-    while(!job_queue.empty()){
-      job_queue.front()(item);
-      job_queue.pop();
+    {//Opróżnienie kolejki wejściowej.
+      std::unique_lock<std::mutex> lock(mutex_queue);
+      ItemPtr<T> item;
+      while(!job_queue.empty()){
+        job_queue.front()(item);
+        job_queue.pop();
+      }
     }
-    for(typename item_list_t::iterator it=item_list.begin();it!=item_list.end();++it){
-      it->second->clearDistributor();
+    {//Zwolnienie elementów puli.
+      std::unique_lock<std::mutex> lock(mutex_list);
+      for(typename item_list_t::iterator it=item_list.begin();it!=item_list.end();++it){
+        it->second->clearDistributor();
+      }
     }
+    //Zatrzymanie wątku.
+    working.store(false);
+    cv.notify_all();
+    thread.join();
   }
   void callDistributor(){
-    ItemPtr<T> item;
-    job_t job;
-    {
-      std::unique_lock<std::mutex> lock(mutex);
-      if (!job_queue.empty()){
-        std::size_t k=selectItem();
-        if (item_list.count(k)){
-          item=item_list[k];
-          job=job_queue.front();
-          job_queue.pop();
-        }
-      }
-    }
-    if (item) item->setDistributor(this);
-    if (job) job(item);
+    cv.notify_all();
   }
   void addJob(job_t job){
-    ItemPtr<T> item;
-    clean();
-    {
-      std::unique_lock<std::mutex> lock(mutex);
-      std::size_t k=selectItem();
-      if (item_list.count(k)){
-        item=item_list[k];
-      } else {
-        job_queue.push(job);
-        return;
-      }
-    }
-    if (item) item->setDistributor(this);
-    if (job) job(item);
+    std::unique_lock<std::mutex> lock(mutex_queue);
+    job_queue.push(job);
+    cv.notify_all();
   }
   std::size_t queueSize(){
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(mutex_queue);
     return(job_queue.size());
   }
 };

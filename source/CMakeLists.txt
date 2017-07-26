@@ -5,6 +5,8 @@ project(libict)
 
 set(CMAKE_CXX_STANDARD 11)
 
+find_package(Threads)
+
 set(CMAKE_SOURCE_FILES 
   utf8.cpp options.cpp base64.cpp 
   time.cpp os.cpp logger.cpp random.cpp 
@@ -12,12 +14,15 @@ set(CMAKE_SOURCE_FILES
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
+target_link_libraries(ict-static ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(ict-static  PROPERTIES OUTPUT_NAME ict)
 
 add_library(ict-shared SHARED ${CMAKE_SOURCE_FILES})
+target_link_libraries(ict-shared ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(ict-shared  PROPERTIES OUTPUT_NAME ict)
 
 add_executable(libict-test test.cpp ${CMAKE_SOURCE_FILES})
+target_link_libraries(libict-test ${CMAKE_THREAD_LIBS_INIT})
 target_compile_definitions(libict-test PUBLIC -DENABLE_TESTING)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
