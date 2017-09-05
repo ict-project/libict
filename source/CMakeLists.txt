@@ -11,6 +11,7 @@ set(CMAKE_SOURCE_FILES
   utf8.cpp options.cpp base64.cpp 
   time.cpp os.cpp logger.cpp random.cpp 
   register.cpp daemon.cpp pool.cpp json-object.cpp
+  websocket.cpp
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
