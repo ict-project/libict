@@ -39,10 +39,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <stdlib.h>
 #include <iostream>
+#if defined(__linux__)
 #include <dirent.h>
+#endif
 //============================================
 namespace ict { namespace os {
 //===========================================
+#if defined(__linux__)
 const unsigned char dt_UNKNOWN(::DT_UNKNOWN);
 const unsigned char dt_REG(::DT_REG);
 const unsigned char dt_DIR(::DT_DIR);
@@ -51,6 +54,16 @@ const unsigned char dt_SOCK(::DT_SOCK);
 const unsigned char dt_CHR(::DT_CHR);
 const unsigned char dt_BLK(::DT_BLK);
 const unsigned char dt_LNK(::DT_LNK);
+#else
+const unsigned char dt_UNKNOWN(0);
+const unsigned char dt_REG(1);
+const unsigned char dt_DIR(1);
+const unsigned char dt_FIFO(3);
+const unsigned char dt_SOCK(4);
+const unsigned char dt_CHR(5);
+const unsigned char dt_BLK(6);
+const unsigned char dt_LNK(7);
+#endif
 const static char separator='/';
 //===========================================
 std::string getCurrentDir(){
@@ -132,6 +145,7 @@ std::string getRelativePath(const std::string & path){
 }
 std::vector<std::string> getDirList(const std::string & dir,unsigned char dt){
   std::vector<std::string> out;
+#if defined(__linux__)
   ::DIR * d=::opendir(dir.c_str());
   if (d){
     struct ::dirent * de;
@@ -140,7 +154,32 @@ std::vector<std::string> getDirList(const std::string & dir,unsigned char dt){
     }
     ::closedir(d);
   }
+#endif
   return(out);
+}
+bool removeFile(const std::string & path){
+#if defined(__linux__)
+  return(!::unlink(path.c_str()));
+#else
+  return(false);
+#endif
+}
+bool removeDir(const std::string & path){
+#if defined(__linux__)
+  return(!::rmdir(path.c_str()));
+#else
+  return(false);
+#endif
+}
+bool removeDirAll(const std::string & path){
+  for (const std::string & name : getDirList(path,dt_REG)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_FIFO)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_SOCK)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_CHR)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_BLK)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_LNK)) if (!removeFile(name)) return(false);
+  for (const std::string & name : getDirList(path,dt_DIR)) if (!removeDir(name)) return(false);
+  return(removeDir(path));
 }
 //============================================
 }}

@@ -67,6 +67,9 @@ std::string getRealPath(const std::string & path);
 std::string getRelativePath(const std::string & base,const std::string & path);
 std::string getRelativePath(const std::string & path);
 std::vector<std::string> getDirList(const std::string & dir, unsigned char dt=dt_UNKNOWN);
+bool removeFile(const std::string & path);
+bool removeDir(const std::string & path);
+bool removeDirAll(const std::string & path);
 //============================================
 }}
 //===========================================
