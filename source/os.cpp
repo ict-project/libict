@@ -39,9 +39,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <stdlib.h>
 #include <iostream>
+#include <dirent.h>
 //============================================
 namespace ict { namespace os {
 //===========================================
+const unsigned char dt_UNKNOWN(::DT_UNKNOWN);
+const unsigned char dt_REG(::DT_REG);
+const unsigned char dt_DIR(::DT_DIR);
+const unsigned char dt_FIFO(::DT_FIFO);
+const unsigned char dt_SOCK(::DT_SOCK);
+const unsigned char dt_CHR(::DT_CHR);
+const unsigned char dt_BLK(::DT_BLK);
+const unsigned char dt_LNK(::DT_LNK);
 const static char separator='/';
 //===========================================
 std::string getCurrentDir(){
@@ -120,6 +129,18 @@ std::string getRelativePath(const std::string & base,const std::string & path){
 }
 std::string getRelativePath(const std::string & path){
   return(getRelativePath("-",path));
+}
+std::vector<std::string> getDirList(const std::string & dir,unsigned char dt){
+  std::vector<std::string> out;
+  ::DIR * d=::opendir(dir.c_str());
+  if (d){
+    struct ::dirent * de;
+    while (de=::readdir(d)) if ((dt==dt_UNKNOWN)||(de->d_type==dt)) {
+      out.emplace_back(de->d_name);
+    }
+    ::closedir(d);
+  }
+  return(out);
 }
 //============================================
 }}

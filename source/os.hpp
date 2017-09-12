@@ -37,8 +37,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _OS_HEADER
 //============================================
 #include <string>
+#include <vector>
 //============================================
 namespace ict { namespace os {
+//===========================================
+//! The type is unknown. Only some filesystems have full support to return the type of the file, others might always return this value.
+extern const unsigned char dt_UNKNOWN;
+//! A regular file.
+extern const unsigned char dt_REG;
+//A directory.
+extern const unsigned char dt_DIR;
+//A named pipe, or FIFO. See FIFO Special Files.
+extern const unsigned char dt_FIFO;
+//A local-domain socket.
+extern const unsigned char dt_SOCK;
+//A character device.
+extern const unsigned char dt_CHR;
+//A block device.
+extern const unsigned char dt_BLK;
+//A symbolic link.
+extern const unsigned char dt_LNK;
 //===========================================
 std::string getCurrentDir();
 std::string getOnlyDir(const std::string & path);
@@ -48,6 +66,7 @@ std::string getRealPath(const std::string & base,const std::string & path);
 std::string getRealPath(const std::string & path);
 std::string getRelativePath(const std::string & base,const std::string & path);
 std::string getRelativePath(const std::string & path);
+std::vector<std::string> getDirList(const std::string & dir, unsigned char dt=dt_UNKNOWN);
 //============================================
 }}
 //===========================================
