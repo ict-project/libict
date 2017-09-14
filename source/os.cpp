@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #if defined(__linux__)
 #include <dirent.h>
+#include <sys/stat.h>
 #endif
 //============================================
 namespace ict { namespace os {
@@ -180,6 +181,13 @@ bool removeDirAll(const std::string & path){
   for (const std::string & name : getDirList(path,dt_LNK)) if (!removeFile(name)) return(false);
   for (const std::string & name : getDirList(path,dt_DIR)) if (!removeDir(name)) return(false);
   return(removeDir(path));
+}
+bool makeDir(const std::string & path,unsigned char mode){
+#if defined(__linux__)
+  return(!::mkdir(path.c_str(),mode?mode:(S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH)));
+#else
+  return(false);
+#endif
 }
 //============================================
 }}

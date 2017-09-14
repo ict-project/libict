@@ -70,6 +70,7 @@ std::vector<std::string> getDirList(const std::string & dir, unsigned char dt=dt
 bool removeFile(const std::string & path);
 bool removeDir(const std::string & path);
 bool removeDirAll(const std::string & path);
+bool makeDir(const std::string & path,unsigned char mode=0);
 //============================================
 }}
 //===========================================
