@@ -423,7 +423,7 @@ namespace ict { namespace logger {
         //Oznacz nową linię.
         newline=true;
         if (log_line.buffered){//Jeśli zapis jest buforowany.
-          const static std::size_t max(100);//Maksymalny rozmiar bufora.
+          const static std::size_t max(1000);//Maksymalny rozmiar bufora.
             if (log_buffer){
               if (log_buffer->size()<max){//Jeśli mniejszy, niż maksymalny rozmiar.
                 log_buffer->push_back(log_line);//Dodaj do bufora.
