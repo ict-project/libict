@@ -499,6 +499,12 @@ std::size_t ObjectType0::getPropOffset(Base * pointer){
   std::size_t offset=((char*)pointer)-((char*)this);
   return(offset);
 }
+void ObjectType1::clearJson(){
+  hideAllJsonProp();
+  for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
+    getPropPointer(it->second)->clearJson();
+  }
+}
 int ObjectType1::parseJsonThis(std::wstring & input){
   if (!parse_name) parse_name.reset(new StringType);
   if (!done.parse.begin_all){

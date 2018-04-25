@@ -182,6 +182,7 @@ protected:
   virtual int testJsonThis()=0;
 public:
   virtual ~Base(){}
+  virtual void clearJson(){}
   int parseJson(std::wstring & input);
   int parseJson(std::string & input);
   int serializeJson(std::wstring & output);
@@ -225,6 +226,10 @@ public:
   NumberType(){
     BaseType<T>::value=0;
     BaseType<T>::json_type=json_type_number;
+  }
+  void clearJson(){
+    BaseType<T>::value=0;
+    info_ptr.reset(nullptr);
   }
   void from_string(const std::string & input){
     number::getFromString(input,BaseType<T>::value);
@@ -324,6 +329,10 @@ public:
     BaseType<bool>::json_type=json_type_bool;
     BaseType<bool>::value=false;
   }
+  void clearJson(){
+    BaseType<bool>::value=false;
+    info_ptr.reset(nullptr);
+  }
 };
 //===========================================
 class NullType: public BaseType<bool>{
@@ -338,6 +347,10 @@ public:
   NullType(){
     BaseType<bool>::json_type=json_type_null;
     BaseType<bool>::value=false;
+  }
+  void clearJson(){
+    BaseType<bool>::value=false;
+    info_ptr.reset(nullptr);
   }
 };
 //===========================================
@@ -388,6 +401,10 @@ public:
     assign(n,c);
     json_type=json_type_string;
   }
+  void clearJson(){
+    clear();
+    info_ptr.reset(nullptr);
+  }
   StringType & operator=(const StringType & s) {assign(s);return(*this);}
   StringType & operator=(const std::string & s) {assign(s);return(*this);}
   StringType & operator=(const char * s) {assign(s);return(*this);}
@@ -437,6 +454,16 @@ public:
   ArrayType(InputIterator f,InputIterator l){
     assign(f,l);
     json_type=json_type_array;
+  }
+  void clearJson(){
+    static const done_t d={0};
+    std::vector<E>::clear();
+    info_ptr.reset(nullptr);
+    done.parse=d;
+    done.serialize=d;
+    parseIndex=0;
+    serializeIndex=0;
+    infoIndex=0;
   }
   ArrayType & operator()() {return(*this);}
   template<typename R>
@@ -658,6 +685,7 @@ public:
   ObjectType1(){
     json_type=json_type_object;
   }
+  void clearJson();
   ObjectType1 & operator()() {return(*this);}
   void hideJsonProp(Base * element);
   void showJsonProp(Base * element);
@@ -723,6 +751,14 @@ class MutableType2: public MutableType1{
 private:
   std::unique_ptr<MutableInfo<O>> info_ptr;
   virtual int infoJsonThis(std::wstring & output);
+public:
+  void clearJson(){
+    selectJsonProp(nullptr);
+    for (prop_map_t::iterator it=prop_map.begin();it!=prop_map.end();++it){
+      getPropPointer(it->second)->clearJson();
+    }
+    info_ptr.reset(nullptr);
+  }
 };
 template<class O>
 int MutableType2<O>::infoJsonThis(std::wstring & output){
