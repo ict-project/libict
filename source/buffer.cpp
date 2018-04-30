@@ -35,7 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
 //============================================
 #include "buffer.hpp"
-#include <stdexcept>
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
@@ -43,141 +42,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace buffer {
 //============================================
-namespace _internal {
-//============================================
-template<typename T> bool testPlus(const T & input,const vector & output){
-    return(output.getFreeSpace()<sizeof(T)); 
+const std::size_t max_size(0xffffffffffffffff);
+void basic::byteIn(const byte_t & byte){
+    q.push(byte);
 }
-template<typename T> bool testMinus(const vector & input,const T & output){
-    return(input.getSize()<sizeof(T));
+void basic::byteOut(byte_t & byte){
+    byte=q.front();
+    q.pop();
 }
-template<class T> bool testPlusArray(const T & input,const vector & output){
-    return(output.getFreeSpace()<(sizeof(input.back())*input.size())); 
-}
-template<class T> bool testMinusArray(const vector & input,const T & output){
-    return(input.getSize()<(sizeof(output.back())*output.max_size()));
-}
-template<typename T> void plus(const T & input,vector & output){
-    const byte_t* ptr=(byte_t*)(&input);
-    if (testPlus(input,output)) throw std::range_error("Input to large for ict::buffer::vector [1]!");
-    for (std::size_t k=0;k<sizeof(T);k++) output.push_back(ptr[k]); 
-}
-template<typename T> void minus(vector & input,T & output){
-    byte_t* ptr=(byte_t*)(&output);
-    if (testMinus(input,output)) throw std::range_error("Output to small for ict::buffer::vector [1]!");
-    for (std::size_t k=0;k<sizeof(T);k++) ptr[k]=input[k];
-    input.erase(input.begin(),input.begin()+sizeof(T));
-}
-template<class T> void plusArray(const T & input,vector & output){
-    if (testPlusArray(input,output)) throw std::range_error("Input to large for ict::buffer::vector [2]!");
-    for (std::size_t k=0;k<input.size();k++) plus(input[k],output);
-}
-template<class T> void minusArray(vector & input,T & output){
-    if (testMinusArray(input,output)) throw std::range_error("Output to small for ict::buffer::vector [2]!");
-    for (;input.size();input.pop_back()) minus(input,output.back());
-}
-//============================================
-}
-//============================================
-vector::vector():max(max_size()){
-}
-vector::vector(std::size_t maxSize):max((maxSize<max_size())?maxSize:max_size()){
-}
-std::size_t vector::getMaxSize() const {
-    return(max);
-}
-std::size_t vector::getFreeSpace() const {
-    return(max-size());
-}
-std::size_t vector::getSize() const {
-    return(size());
-}
-
-bool vector::testPlus(const signed char & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const signed short int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const signed int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const signed long int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const signed long long int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const unsigned char & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const unsigned short int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const unsigned int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const unsigned long int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const unsigned long long int & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const float & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const double & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const long double & input){return(!_internal::testPlus(input,*this));}
-bool vector::testPlus(const bool & input){
-    unsigned char in;
-    return(!_internal::testPlus(in,*this));
-}
-bool vector::testPlus(const std::string & input){return(!_internal::testPlusArray(input,*this));}
-bool vector::testPlus(const std::wstring & input){return(!_internal::testPlusArray(input,*this));}
-bool vector::testPlus(const byte_vector_t & input){return(!_internal::testPlusArray(input,*this));}
-
-vector & vector::operator +=(const signed char & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const signed short int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const signed int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const signed long int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const signed long long int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const unsigned char & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const unsigned int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const unsigned long int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const unsigned long long int & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const float & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const double & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const long double & input){_internal::plus(input,*this);return(*this);}
-vector & vector::operator +=(const bool & input){
-    unsigned char in;
-    in=input;
-    _internal::plus(input,*this);
-    return(*this);
-}
-vector & vector::operator +=(const std::string & input){_internal::plusArray(input,*this);return(*this);}
-vector & vector::operator +=(const std::wstring & input){_internal::plusArray(input,*this);return(*this);}
-vector & vector::operator +=(const byte_vector_t & input){_internal::plusArray(input,*this);return(*this);}
-
-bool vector::testMinus(const signed char & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const signed short int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const signed int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const signed long int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const signed long long int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const unsigned char & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const unsigned short int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const unsigned int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const unsigned long int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const unsigned long long int & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const float & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const double & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const long double & output){return(!_internal::testMinus(*this,output));}
-bool vector::testMinus(const bool & output){
-    unsigned char out;
-    return(!_internal::testMinus(*this,out));
-}
-bool vector::testMinus(const std::string & output){return(!_internal::testMinusArray(*this,output));}
-bool vector::testMinus(const std::wstring & output){return(!_internal::testMinusArray(*this,output));}
-bool vector::testMinus(const byte_vector_t & output){return(!_internal::testMinusArray(*this,output));}
-
-vector & vector::operator -=(signed char & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(signed short int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(signed int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(signed long int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(signed long long int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(unsigned char & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(unsigned int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(unsigned long int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(unsigned long long int & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(float & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(double & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(long double & output){_internal::minus(*this,output);return(*this);}
-vector & vector::operator -=(bool & output){
-    unsigned char out;
-    _internal::minus(*this,out);
-    output=out;
-    return(*this);
-}
-vector & vector::operator -=(std::string & output){_internal::minusArray(*this,output);return(*this);}
-vector & vector::operator -=(std::wstring & output){_internal::minusArray(*this,output);return(*this);}
-vector & vector::operator -=(byte_vector_t & output){_internal::minusArray(*this,output);return(*this);}
+basic::basic():max(max_size){}
+basic::basic(const std::size_t & maxSize):max((maxSize<max_size)?maxSize:max_size){}
+std::size_t basic::getMaxSize() const{return(max);}
+std::size_t basic::getFreeSpace() const{return(max-q.size());}
+std::size_t basic::getSize() const{return(q.size());}
 //===========================================
 } }
 //===========================================

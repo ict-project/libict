@@ -37,94 +37,139 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _BUFFER_HEADER
 //============================================
 #include <vector>
+#include <queue>
 #include <string>
+#include <stdexcept>
 //============================================
 namespace ict { namespace buffer {
 //===========================================
 typedef unsigned char byte_t;
 typedef std::vector<byte_t> byte_vector_t;
 //===========================================
-class vector: public byte_vector_t{
+class interface {
+private:
+    template<typename T> bool testInput(const T & input){
+        return(getFreeSpace()<sizeof(input)); 
+    }
+    template<typename T> bool testOutput(const T & output){
+        return(getSize()<sizeof(output)); 
+    }
+    template<class T> bool testInputArray(const T & input){
+        return(getFreeSpace()<(sizeof(input.back())*input.size())); 
+    }
+    template<class T> bool testOutputArray(const T & output){
+        return(getSize()<(sizeof(output.back())*output.max_size()));
+    }
+    template<typename T> void dataIn(const T & input){
+        const byte_t* ptr=(byte_t*)(&input);
+        if (testInput(input)) throw std::range_error("Input to large for ict::buffer::interface [1]!");
+        for (std::size_t k=0;k<sizeof(input);k++)  byteIn(ptr[k]);
+    }
+    template<typename T> void dataOut(T & output){
+        byte_t* ptr=(byte_t*)(&output);
+        if (testOutput(output)) throw std::range_error("Output to small for ict::buffer::interface [1]!");
+        for (std::size_t k=0;k<sizeof(output);k++) byteOut(ptr[k]);
+    }
+    template<class T> void dataInArray(const T & input){
+        if (testInputArray(input)) throw std::range_error("Input to large for ict::buffer::interface [2]!");
+        for (std::size_t k=0;k<input.size();k++) dataIn(input[k]);
+    }
+    template<class T> void dataOutArray(T & output){
+        if (testOutputArray(output)) throw std::range_error("Output to small for ict::buffer::interface [2]!");
+        for (std::size_t k=0;k<output.size();k++) dataOut(output[k]);
+    }
+    virtual void byteIn(const byte_t & byte)=0;
+    virtual void byteOut(byte_t & byte)=0;
+public:
+    virtual std::size_t getMaxSize() const=0;
+    virtual std::size_t getFreeSpace() const=0;
+    virtual std::size_t getSize() const=0;
+
+    bool testIn(const signed char & input){return(!testInput(input));}
+    bool testIn(const signed short int & input){return(!testInput(input));}
+    bool testIn(const signed int & input){return(!testInput(input));}
+    bool testIn(const signed long int & input){return(!testInput(input));}
+    bool testIn(const signed long long int & input){return(!testInput(input));}
+    bool testIn(const unsigned char & input){return(!testInput(input));}
+    bool testIn(const unsigned short int & input){return(!testInput(input));}
+    bool testIn(const unsigned int & input){return(!testInput(input));}
+    bool testIn(const unsigned long int & input){return(!testInput(input));}
+    bool testIn(const unsigned long long int & input){return(!testInput(input));}
+    bool testIn(const float & input){return(!testInput(input));}
+    bool testIn(const double & input){return(!testInput(input));}
+    bool testIn(const long double & input){return(!testInput(input));}
+    bool testIn(const bool & input){return(!testInput(input));}
+    bool testIn(const std::string & input){return(!testInputArray(input));}
+    bool testIn(const std::wstring & input){return(!testInputArray(input));}
+    bool testIn(const byte_vector_t & input){return(!testInputArray(input));}
+
+    interface & operator <<(const signed char & input){dataIn(input);return(*this);}
+    interface & operator <<(const signed short int & input){dataIn(input);return(*this);}
+    interface & operator <<(const signed int & input){dataIn(input);return(*this);}
+    interface & operator <<(const signed long int & input){dataIn(input);return(*this);}
+    interface & operator <<(const signed long long int & input){dataIn(input);return(*this);}
+    interface & operator <<(const unsigned char & input){dataIn(input);return(*this);}
+    interface & operator <<(const unsigned short int & input){dataIn(input);return(*this);}
+    interface & operator <<(const unsigned int & input){dataIn(input);return(*this);}
+    interface & operator <<(const unsigned long int & input){dataIn(input);return(*this);}
+    interface & operator <<(const unsigned long long int & input){dataIn(input);return(*this);}
+    interface & operator <<(const float & input){dataIn(input);return(*this);}
+    interface & operator <<(const double & input){dataIn(input);return(*this);}
+    interface & operator <<(const long double & input){dataIn(input);return(*this);}
+    interface & operator <<(const bool & input){dataIn(input);return(*this);}
+    interface & operator <<(const std::string & input){dataInArray(input);return(*this);}
+    interface & operator <<(const std::wstring & input){dataInArray(input);return(*this);}
+    interface & operator <<(const byte_vector_t & input){dataInArray(input);return(*this);}
+
+    bool testOut(const signed char & output){return(!testOutput(output));}
+    bool testOut(const signed short int & output){return(!testOutput(output));}
+    bool testOut(const signed int & output){return(!testOutput(output));}
+    bool testOut(const signed long int & output){return(!testOutput(output));}
+    bool testOut(const signed long long int & output){return(!testOutput(output));}
+    bool testOut(const unsigned char & output){return(!testOutput(output));}
+    bool testOut(const unsigned short int & output){return(!testOutput(output));}
+    bool testOut(const unsigned int & output){return(!testOutput(output));}
+    bool testOut(const unsigned long int & output){return(!testOutput(output));}
+    bool testOut(const unsigned long long int & output){return(!testOutput(output));}
+    bool testOut(const float & output){return(!testOutput(output));}
+    bool testOut(const double & output){return(!testOutput(output));}
+    bool testOut(const long double & output){return(!testOutput(output));}
+    bool testOut(const bool & output){return(!testOutput(output));}
+    bool testOut(const std::string & output){return(!testOutputArray(output));}
+    bool testOut(const std::wstring & output){return(!testOutputArray(output));}
+    bool testOut(const byte_vector_t & output){return(!testOutputArray(output));}
+
+    interface & operator >>(signed char & output){dataOut(output);return(*this);}
+    interface & operator >>(signed short int & output){dataOut(output);return(*this);}
+    interface & operator >>(signed int & output){dataOut(output);return(*this);}
+    interface & operator >>(signed long int & output){dataOut(output);return(*this);}
+    interface & operator >>(signed long long int & output){dataOut(output);return(*this);}
+    interface & operator >>(unsigned char & output){dataOut(output);return(*this);}
+    interface & operator >>(unsigned short int & output){dataOut(output);return(*this);}
+    interface & operator >>(unsigned int & output){dataOut(output);return(*this);}
+    interface & operator >>(unsigned long int & output){dataOut(output);return(*this);}
+    interface & operator >>(unsigned long long int &output){dataOut(output);return(*this);}
+    interface & operator >>(float & output){dataOut(output);return(*this);}
+    interface & operator >>(double & output){dataOut(output);return(*this);}
+    interface & operator >>(long double & output){dataOut(output);return(*this);}
+    interface & operator >>(bool & output){dataOut(output);return(*this);}
+    interface & operator >>(std::string & output){dataOutArray(output);return(*this);}
+    interface & operator >>(std::wstring & output){dataOutArray(output);return(*this);}
+    interface & operator >>(byte_vector_t & output){dataOutArray(output);return(*this);}
+};
+//===========================================
+class basic:public interface {
 private:
     std::size_t max;
+    std::queue<byte_t> q;
+    void byteIn(const byte_t & byte);
+    void byteOut(byte_t & byte);
 public:
-    vector();
-    vector(std::size_t maxSize);
+    basic();
+    basic(const std::size_t & maxSize);
     std::size_t getMaxSize() const;
     std::size_t getFreeSpace() const;
     std::size_t getSize() const;
-
-    bool testPlus(const signed char & input);
-    bool testPlus(const signed short int & input);
-    bool testPlus(const signed int & input);
-    bool testPlus(const signed long int & input);
-    bool testPlus(const signed long long int & input);
-    bool testPlus(const unsigned char & input);
-    bool testPlus(const unsigned short int & input);
-    bool testPlus(const unsigned int & input);
-    bool testPlus(const unsigned long int & input);
-    bool testPlus(const unsigned long long int & input);
-    bool testPlus(const float & input);
-    bool testPlus(const double & input);
-    bool testPlus(const long double & input);
-    bool testPlus(const bool & input);
-    bool testPlus(const std::string & input);
-    bool testPlus(const std::wstring & input);
-    bool testPlus(const byte_vector_t & input);
-
-    vector & operator +=(const signed char & input);
-    vector & operator +=(const signed short int & input);
-    vector & operator +=(const signed int & input);
-    vector & operator +=(const signed long int & input);
-    vector & operator +=(const signed long long int & input);
-    vector & operator +=(const unsigned char & input);
-    vector & operator +=(const unsigned short int & input);
-    vector & operator +=(const unsigned int & input);
-    vector & operator +=(const unsigned long int & input);
-    vector & operator +=(const unsigned long long int & input);
-    vector & operator +=(const float & input);
-    vector & operator +=(const double & input);
-    vector & operator +=(const long double & input);
-    vector & operator +=(const bool & input);
-    vector & operator +=(const std::string & input);
-    vector & operator +=(const std::wstring & input);
-    vector & operator +=(const byte_vector_t & input);
-
-    bool testMinus(const signed char & input);
-    bool testMinus(const signed short int & input);
-    bool testMinus(const signed int & input);
-    bool testMinus(const signed long int & input);
-    bool testMinus(const signed long long int & input);
-    bool testMinus(const unsigned char & input);
-    bool testMinus(const unsigned short int & input);
-    bool testMinus(const unsigned int & input);
-    bool testMinus(const unsigned long int & input);
-    bool testMinus(const unsigned long long int & input);
-    bool testMinus(const float & input);
-    bool testMinus(const double & input);
-    bool testMinus(const long double & input);
-    bool testMinus(const bool & input);
-    bool testMinus(const std::string & input);
-    bool testMinus(const std::wstring & input);
-    bool testMinus(const byte_vector_t & input);
-
-    vector & operator -=(signed char & output);
-    vector & operator -=(signed short int & output);
-    vector & operator -=(signed int & output);
-    vector & operator -=(signed long int & output);
-    vector & operator -=(signed long long int & output);
-    vector & operator -=(unsigned char & output);
-    vector & operator -=(unsigned short int & output);
-    vector & operator -=(unsigned int & output);
-    vector & operator -=(unsigned long int & output);
-    vector & operator -=(unsigned long long int &output);
-    vector & operator -=(float & output);
-    vector & operator -=(double & output);
-    vector & operator -=(long double & output);
-    vector & operator -=(bool & output);
-    vector & operator -=(std::string & output);
-    vector & operator -=(std::wstring & output);
-    vector & operator -=(byte_vector_t & output);
 };
 //===========================================
 } }
