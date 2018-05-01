@@ -63,6 +63,8 @@ enum data_t{
     data_string_wstring,
     data_string_bytes,
     data_string_stream,
+    data_object,
+    data_array
 };
 //===========================================
 template <class T> class comparable {
@@ -226,13 +228,145 @@ public:
     data_const_iterator data_crbegin() const {return data_const_iterator(this,true,false);};
     data_const_iterator data_crend() const {return data_const_iterator(this,true,true);};
     //====================
-    virtual bool data_parse(ict::buffer::interface & input)=0;
-    virtual bool data_serialize(ict::buffer::interface & output)=0;
-    virtual data_t data_getType() const {return(data_null);};
-    virtual std::size_t data_getSize() const {return(0);};
-    virtual std::string data_getTag(const std::size_t & index) const {return("");};
-    virtual interface & data_getValue(const std::size_t & index) {return(*this);};
-    virtual void data_getInfo(info & output);
+    virtual int data_parse(ict::buffer::interface & buffer){return(0);}
+    virtual int data_serialize(ict::buffer::interface & buffer){return(0);}
+    virtual int data_validate(std::string & error){return(0);}
+    virtual data_t data_getType() const {return(data_null);}
+    virtual std::size_t data_getSize() const {return(0);}
+    virtual std::string data_getTag(const std::size_t & index) const {return("");}
+    virtual interface & data_getValue(const std::size_t & index) {return(*this);}
+    virtual void data_getInfo(info & output){}
+};
+class null_t: public interface{
+};
+template<typename T> class basic: public interface{
+public:
+    T value;
+public:
+    int data_parse(ict::buffer::interface & buffer){
+        if (buffer.testIn(value)){
+            buffer<<value;
+            return(0);
+        }
+        return(1);
+    }
+    int data_serialize(ict::buffer::interface & buffer){
+        if (buffer.testOut(value)){
+            buffer>>value;
+            return(0);
+        }
+        return(1);
+    }
+    T & operator()(){
+        return(value);
+    }
+};
+class bool_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_bool);}
+};
+class number_s_char_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_s_char);}
+};
+class number_ss_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_ss_int);}
+};
+class number_s_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_s_int);}
+};
+class number_sl_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_sl_int);}
+};
+class number_sll_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_sll_int);}
+};
+class number_u_char_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_u_char);}
+};
+class number_us_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_us_int);}
+};
+class number_u_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_us_int);}
+};
+class number_ul_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_ul_int);}
+};
+class number_ull_int_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_ull_int);}
+};
+class number_float_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_float);}
+};
+class number_double_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_double);}
+};
+class number_l_double_t:public basic<bool>{
+public:
+    data_t data_getType() const {return(data_number_l_double);}
+};
+template<class T> class string: public interface{
+public:
+    T value;
+public:
+    int data_parse(ict::buffer::interface & buffer){
+        if (buffer.testIn(value)){
+            buffer<<value;
+            return(0);
+        }
+        return(1);
+    }
+    int data_serialize(ict::buffer::interface & buffer){
+        value.resize(buffer.getSize());
+        if (buffer.testOut(value)){
+            buffer>>value;
+            return(0);
+        }
+        return(1);
+    }
+    T & operator()(){
+        return(value);
+    }
+};
+class string_string_t:public string<std::string>{
+public:
+    data_t data_getType() const {return(data_string_string);}
+};
+class string_wstring_t:public string<std::wstring>{
+public:
+    data_t data_getType() const {return(data_string_wstring);}
+};
+class string_bytes_t:public string<ict::buffer::byte_vector_t>{
+public:
+    data_t data_getType() const {return(data_string_bytes);}
+};
+class string_stream_t:public interface{
+public:
+    data_t data_getType() const {return(data_string_stream);}
+};
+class string_object_t:public interface{
+private:
+    //TODO
+public:
+    data_t data_getType() const {return(data_object);}
+};
+template<class T> class string_array_t:public std::vector<T>,public interface{
+private:
+    //TODO
+public:
+    data_t data_getType() const {return(data_array);}
 };
 class info:public interface{
     //TODO
