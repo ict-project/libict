@@ -58,7 +58,7 @@ private:
         return(getFreeSpace()<(sizeof(input.back())*input.size())); 
     }
     template<class T> bool testOutputArray(const T & output){
-        return(getSize()<(sizeof(output.back())*output.max_size()));
+        return(getSize()<(sizeof(output.back())*output.size()));
     }
     template<typename T> void dataIn(const T & input){
         const byte_t* ptr=(byte_t*)(&input);
