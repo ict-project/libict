@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "buffer.hpp"
 #include <string>
 #include <vector>
+#include <map>
 #include <stack>
 //============================================
 namespace ict { namespace data {
@@ -228,7 +229,7 @@ public:
     data_const_iterator data_crbegin() const {return data_const_iterator(this,true,false);};
     data_const_iterator data_crend() const {return data_const_iterator(this,true,true);};
     //====================
-    virtual int data_parse(ict::buffer::interface & buffer){return(0);}
+    virtual int data_parse(ict::buffer::interface & buffer) const {return(0);}
     virtual int data_serialize(ict::buffer::interface & buffer){return(0);}
     virtual int data_validate(std::string & error){return(0);}
     virtual data_t data_getType() const {return(data_null);}
@@ -243,7 +244,7 @@ template<typename T> class basic: public interface{
 public:
     T value;
 public:
-    int data_parse(ict::buffer::interface & buffer){
+    int data_parse(ict::buffer::interface & buffer) const {
         if (buffer.testIn(value)){
             buffer<<value;
             return(0);
@@ -321,7 +322,7 @@ template<class T> class string: public interface{
 public:
     T value;
 public:
-    int data_parse(ict::buffer::interface & buffer){
+    int data_parse(ict::buffer::interface & buffer) const {
         if (buffer.testIn(value)){
             buffer<<value;
             return(0);
@@ -329,7 +330,7 @@ public:
         return(1);
     }
     int data_serialize(ict::buffer::interface & buffer){
-        value.resize(buffer.getSize());
+        value.resize(buffer.getSize()/sizeof(value.back()));
         if (buffer.testOut(value)){
             buffer>>value;
             return(0);
@@ -358,9 +359,37 @@ public:
 };
 class string_object_t:public interface{
 private:
-    //TODO
+    typedef std::size_t data_offset_t;
+    typedef std::map<std::string,data_offset_t> data_name_offset_t;
+    typedef std::map<data_offset_t,std::string> data_offset_name_t;
+    typedef std::vector<data_offset_t> data_offset_vector_t;
+    data_name_offset_t data_name_offset;
+    data_offset_name_t data_offset_name;
+    data_offset_vector_t data_visible_prop;
+    interface * data_getPropPointer(const data_offset_t & offset);
+    data_offset_t data_getPropOffset(interface * pointer);
 public:
+    void data_registerProp(interface * element,const std::string & name);
+    #define data_registerNewProp(element) data_registerProp(&element,#element)
+
+    void data_hideProp(const data_offset_t & offset);    
+    void data_hideProp(interface * element);
+    void data_hideProp(const std::string & name);
+    void data_hideAllProp();
+
+    void data_showProp(const data_offset_t & offset);
+    void data_showProp(interface * element);
+    void data_showProp(const std::string & name);
+    void data_showAllProp();
+
+    bool data_isPropPresent(const data_offset_t & offset);
+    bool data_isPropPresent(interface * element);
+    bool data_isPropPresent(const std::string & name);
+    
     data_t data_getType() const {return(data_object);}
+    std::size_t data_getSize() const {return(data_visible_prop.size());}
+    std::string data_getTag(const std::size_t & index) const;
+    interface & data_getValue(const std::size_t & index);
 };
 template<class T> class string_array_t:public std::vector<T>,public interface{
 private:

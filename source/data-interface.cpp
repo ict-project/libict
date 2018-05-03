@@ -43,7 +43,89 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //============================================
-
+interface * string_object_t::data_getPropPointer(const data_offset_t & offset){
+  char * pointer=((char*)this)+offset;
+  return((interface*)pointer);
+}
+std::size_t string_object_t::data_getPropOffset(interface * pointer){
+  std::size_t offset=((char*)pointer)-((char*)this);
+  return(offset);
+}
+void string_object_t::data_registerProp(interface * element,const std::string & name){
+  if (element){
+    std::size_t offset=data_getPropOffset(element);
+    data_name_offset[name]=offset;
+    data_offset_name[offset]=name;
+  }
+}
+void string_object_t::data_hideProp(const data_offset_t & offset){
+  if (data_offset_name.count(offset)){
+    data_offset_vector_t tmp;
+    for (const std::size_t & item : data_visible_prop){
+      if (item!=offset) tmp.push_back(item);
+    }
+    data_visible_prop=tmp;
+  }
+}
+void string_object_t::data_hideProp(interface * element){
+  if (element) data_hideProp(data_getPropOffset(element));
+}
+void string_object_t::data_hideProp(const std::string & name){
+  if (data_name_offset.count(name)) data_hideProp(data_name_offset.at(name));
+}
+void string_object_t::data_showProp(const data_offset_t & offset){
+  if (data_offset_name.count(offset)){
+    if (!data_isPropPresent(offset)){
+      data_visible_prop.push_back(offset);
+    }
+  }
+}
+void string_object_t::data_showProp(interface * element){
+  if (element) data_showProp(data_getPropOffset(element));
+}
+void string_object_t::data_showProp(const std::string & name){
+  if (data_name_offset.count(name)) data_showProp(data_name_offset.at(name));
+}
+void string_object_t::data_hideAllProp(){
+  data_visible_prop.clear();
+}
+void string_object_t::data_showAllProp(){
+  for (data_name_offset_t::const_iterator it=data_name_offset.cbegin();it!=data_name_offset.cend();++it){
+    if (!data_isPropPresent(it->second)) data_visible_prop.push_back(it->second);
+  }  
+}
+bool string_object_t::data_isPropPresent(const data_offset_t & offset){
+  for (const data_offset_t & item : data_visible_prop){
+    if (item==offset) return(true);
+  }
+  return(false);
+}
+bool string_object_t::data_isPropPresent(interface * element){
+  if (element){
+    return(data_isPropPresent(data_getPropOffset(element)));
+  }
+  return(false);
+}
+bool string_object_t::data_isPropPresent(const std::string & name){
+  if (data_name_offset.count(name)){
+    return(data_isPropPresent(data_name_offset.at(name)));
+  }
+  return(false);
+}
+std::string string_object_t::data_getTag(const std::size_t & index) const {
+  if (index<data_visible_prop.size()){
+    return(data_offset_name.at(data_visible_prop.at(index)));
+  }
+  throw std::invalid_argument("Index out of range [1]!");
+  return("");
+}
+interface & string_object_t::data_getValue(const std::size_t & index){
+  if (index<data_visible_prop.size()){
+    return(*data_getPropPointer(data_visible_prop.at(index)));
+  }
+  throw std::invalid_argument("Index out of range [2]!");
+  return(*this);
+}
 //===========================================
 } }
 //===========================================
