@@ -112,6 +112,33 @@ bool string_object_t::data_isPropPresent(const std::string & name){
   }
   return(false);
 }
+void string_object_t::data_clear(){
+  data_hideAllProp();
+  for (data_name_offset_t::const_iterator it=data_name_offset.cbegin();it!=data_name_offset.cend();++it){
+    interface * element=data_getPropPointer(it->second);
+    if (element) element->data_clear();
+  }
+}
+bool string_object_t::data_pushFront(const std::string & tag){
+  if (data_name_offset.count(tag)){
+    data_offset_t offset=data_name_offset.at(tag);
+    if (!data_isPropPresent(offset)){
+      data_visible_prop.insert(data_visible_prop.begin(),offset);
+      return(true);
+    }
+  }
+  return(false);
+}
+bool string_object_t::data_pushBack(const std::string & tag){
+  if (data_name_offset.count(tag)){
+    data_offset_t offset=data_name_offset.at(tag);
+    if (!data_isPropPresent(offset)){
+      data_visible_prop.push_back(offset);
+      return(true);
+    }
+  }
+  return(false);
+}
 std::string string_object_t::data_getTag(const std::size_t & index) const {
   if (index<data_visible_prop.size()){
     return(data_offset_name.at(data_visible_prop.at(index)));

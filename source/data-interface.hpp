@@ -126,7 +126,6 @@ private:
                 return(0);
             }
         public:
-            std::size_t max;
             std::size_t step;
             T ptr;
         };
@@ -172,7 +171,6 @@ private:
         tags tag_vector; 
         void push(pointer ptr,const std::string & tag=""){
             stack_item_t<I> item;
-            item.max=(ptr->data_getSize()<<0x1)+1;
             item.step=0;
             item.ptr=ptr;
             stack.push(item);
@@ -190,13 +188,14 @@ private:
         void go(){
             while(!stack.empty()){
                 stack_item_t<I> & item(stack.top());
+                std::size_t max=(ptr->data_getSize()<<0x1)+1;
                 item.step++;
-                if (item.step<item.max){//Przekroczenie zakresu.
+                if (item.step<max){//Przekroczenie zakresu.
                     pop();//Zdejmij element
                 } else {//W zakresie
                     if (item.step&0x1){//Wejdź wyżej
                         std::size_t s=item.step>>0x1;
-                        std::size_t m=item.max>>0x1;
+                        std::size_t m=ptr->data_getSize();
                         std::size_t i=reverse_value?m-s:s;
                         interface & next(item.ptr->data_getValue(i));
                         push(&next,item.ptr->data_getTag(i));
@@ -232,6 +231,9 @@ public:
     virtual int data_parse(ict::buffer::interface & buffer) const {return(0);}
     virtual int data_serialize(ict::buffer::interface & buffer){return(0);}
     virtual int data_validate(std::string & error){return(0);}
+    virtual void data_clear(){}
+    virtual bool data_pushFront(const std::string & tag=""){return(false);}
+    virtual bool data_pushBack(const std::string & tag=""){return(false);}
     virtual data_t data_getType() const {return(data_null);}
     virtual std::size_t data_getSize() const {return(0);}
     virtual std::string data_getTag(const std::size_t & index) const {return("");}
@@ -386,9 +388,19 @@ public:
     bool data_isPropPresent(interface * element);
     bool data_isPropPresent(const std::string & name);
     
+    //! See: ict::data:interface
+    void data_clear();
+    //! See: ict::data:interface
+    bool data_pushFront(const std::string & tag="");
+    //! See: ict::data:interface
+    bool data_pushBack(const std::string & tag="");
+    //! See: ict::data:interface
     data_t data_getType() const {return(data_object);}
+    //! See: ict::data:interface
     std::size_t data_getSize() const {return(data_visible_prop.size());}
+    //! See: ict::data:interface
     std::string data_getTag(const std::size_t & index) const;
+    //! See: ict::data:interface
     interface & data_getValue(const std::size_t & index);
 };
 template<class T> class string_array_t:public std::vector<T>,public interface{
