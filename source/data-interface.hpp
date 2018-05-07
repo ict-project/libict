@@ -188,14 +188,16 @@ private:
         void go(){
             while(!stack.empty()){
                 stack_item_t<I> & item(stack.top());
-                std::size_t max=(ptr->data_getSize()<<0x1)+1;
+                std::size_t max=item.ptr->data_getSize();
+                max<<=0x1;
+                max++;
                 item.step++;
                 if (item.step<max){//Przekroczenie zakresu.
                     pop();//Zdejmij element
                 } else {//W zakresie
                     if (item.step&0x1){//Wejdź wyżej
                         std::size_t s=item.step>>0x1;
-                        std::size_t m=ptr->data_getSize();
+                        std::size_t m=item.ptr->data_getSize();
                         std::size_t i=reverse_value?m-s:s;
                         interface & next(item.ptr->data_getValue(i));
                         push(&next,item.ptr->data_getTag(i));
