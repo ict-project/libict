@@ -44,32 +44,44 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //===========================================
+//! Typy danych
 enum data_t{
-    data_null,
-    data_bool,
-    data_number_s_char,
-    data_number_ss_int,
-    data_number_s_int,
-    data_number_sl_int,
-    data_number_sll_int,
-    data_number_u_char,
-    data_number_us_int,
-    data_number_u_int,
-    data_number_ul_int,
-    data_number_ull_int,
-    data_number_float,
-    data_number_double,
-    data_number_l_double,
-    data_string_string,
-    data_string_wstring,
-    data_string_bytes,
-    data_string_stream,
-    data_object,
-    data_array
+    data_null=0x0001,// null
+    data_bool=0x0002,// bool
+    data_number_s_char=0x1000+sizeof(signed char),// signed char
+    data_number_ss_int=0x1000+sizeof(signed short int),// signed short int
+    data_number_s_int=0x1000+sizeof(signed int),// signed int
+    data_number_sl_int=0x1000+sizeof(signed long int),// signed long int
+    data_number_sll_int=0x1000+sizeof(signed long long int),// signed long long int
+    data_number_u_char=0x2000+sizeof(unsigned char),// unsigned char
+    data_number_us_int=0x2000+sizeof(unsigned short int),// unsigned short int
+    data_number_u_int=0x2000+sizeof(unsigned int),// unsigned int
+    data_number_ul_int=0x2000+sizeof(unsigned long int),// unsigned long int
+    data_number_ull_int=0x2000+sizeof(unsigned long long int),// unsigned long long int
+    data_number_float=0x4000+sizeof(float),// float
+    data_number_double=0x4000+sizeof(double),// double
+    data_number_l_double=0x4000+sizeof(long double),// long double
+    data_string_string=0x8000+sizeof(char),// std::string
+    data_string_wstring=0x8000+sizeof(wchar_t),// std::wstring
+    data_string_bytes=0x8000,// std::vector<>
+    data_string_stream=0x0004,
+    data_object=0x0008,
+    data_array=0x0010,
+    data_map=0x0020
 };
 //===========================================
+//! Wzorzec obietów porównywalnych
 template <class T> class comparable {
 private:
+    //!
+    //! @brief Funkcja porównująca dane (do nadpisania).
+    //! 
+    //! @param rhs Obiekt do porównania z tym obiektem.
+    //! @return int Wartości:
+    //!  @li -1 - Ten obiekt jest mniejszy od rhs.
+    //!  @li 0 - Obiekty są równe.
+    //!  @li 1 - Ten biekt jest więlszy od rhs.
+    //! 
     virtual int compare(const T & rhs) const =0;
 public:
     bool operator==(const T& rhs) const { 
@@ -93,6 +105,7 @@ public:
 };
 //===========================================
 class info;
+//! Porównwalna wersja std::vector<std::string>
 class tags : public std::vector<std::string>,public comparable<tags>{
     int compare(const tags & rhs) const {
         if (size()<rhs.size()) return(-1);
@@ -103,6 +116,11 @@ class tags : public std::vector<std::string>,public comparable<tags>{
         }
         return(0);
     }
+    //! 
+    //! @brief Zwraca string połączonych za pomocą kropki ('.') wartosći std::string.
+    //! 
+    //! @return std::string Połączony ciąg znaków.
+    //! 
     std::string string() const {
         std::string out;
         for (std::size_t k=0;k<size();k++) {
@@ -112,10 +130,13 @@ class tags : public std::vector<std::string>,public comparable<tags>{
         return(out);
     }
 };
+//! Podstawowy interfejs danych.
 class interface{
 private:
+    //! Wzorzec iteratora jednokierunkowego.
     template<class I> class iterator_template: public comparable<iterator_template<I>>{
     private:
+        //! Wzorzec elementu stosu iteratora.
         template<class T> class stack_item_t: public comparable<stack_item_t<T>> {
         private:
             int compare(const stack_item_t& rhs) const {
@@ -126,7 +147,9 @@ private:
                 return(0);
             }
         public:
+            //! Krok w ramach obiektu.
             std::size_t step;
+            //! Wskaźnik do obiektu.
             T ptr;
         };
     public:
@@ -134,33 +157,76 @@ private:
         typedef iterator_template<I> self_type;
         typedef std::forward_iterator_tag iterator_category;
         typedef int difference_type;
-        iterator_template(pointer ptr,bool reverse=false,bool end=false):reverse_value(reverse){
-            if (ptr){ 
-                if (!end) push(ptr);
+        //! 
+        //! @brief Construct a new iterator template object
+        //! 
+        //! @param ptr Wskaźnik obiektu powiązanego z iteratorem.
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        iterator_template(pointer ptr,bool reverse=false):reverse_value(reverse){
+            if (ptr) {
+                push(ptr);
             } else {
                 throw std::invalid_argument("Null!");
             }
         }
+        //! 
+        //! @brief Construct a new iterator template object (end)
+        //! 
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        iterator_template(bool reverse=false):reverse_value(reverse){
+        }
+        //! 
+        //! @brief Zwraca wskaźnik aktualnego obiektu.
+        //! 
+        //! @return pointer Wskaźnik aktualnego obiektu.
+        //! 
         pointer ptr(){
             if (stack.empty()) throw std::range_error("No value [1]!");
             return(stack.top().ptr);
         }
+        //! 
+        //! @brief Zwraca aktualny krok w ramach aktualnego obiektu. 
+        //! 
+        //! @return std::size_t Aktualny krok w ramach aktualnego obiektu.
+        //! 
         std::size_t step() const {
             if (stack.empty()) throw std::range_error("No value [2]!");
             return(stack.top().step>>0x1);
         }
+        //! 
+        //! @brief Zwraca aktualnę fazę aktualnego kroku w ramach aktualnego obiektu.
+        //! 
+        //! @return Aktualna faza aktualnego kroku w ramach aktualnego obiektu.
+        //! 
         bool phase() const {
             if (stack.empty()) throw std::range_error("No value [3]!");
             return(stack.top().step&0x1);
         }
+        //! 
+        //! @brief Get the Tags object
+        //! 
+        //! @return const tags& 
+        //! 
         const tags & getTags() const {
             return(tag_vector);
         }
+        //! 
+        //! @brief Krok iteratora.
+        //! 
+        //! @return self_type 
+        //! 
         self_type operator++() {
             self_type i=*this; 
             go(); 
             return(i); 
         }
+        //! 
+        //! @brief Krok iteratora.
+        //! 
+        //! @return self_type 
+        //! 
         self_type operator++(int) {
             go();
             return(*this); 
@@ -210,155 +276,362 @@ private:
         }
     };
 public:
+    //! Iterator jednokierunkowy.
     class data_iterator:public iterator_template<interface*>{
     public:
-        data_iterator(pointer ptr,bool reverse=false,bool end=false):
-            iterator_template<interface*>(ptr,reverse,end){}
+        //! 
+        //! @brief Construct a new data iterator object
+        //! 
+        //! @param ptr Wskaźnik obiektu powiązanego z iteratorem.
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        data_iterator(pointer ptr,bool reverse=false):
+            iterator_template<interface*>(ptr,reverse){}
+        //! 
+        //! @brief Construct a new data iterator object (end)
+        //! 
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        data_iterator(bool reverse=false):
+            iterator_template<interface*>(reverse){}
     };
+    //! Iterator jednokierunkowy (const).
     class data_const_iterator:public iterator_template<const interface*>{
     public:
-        data_const_iterator(pointer ptr,bool reverse=false,bool end=false):
-            iterator_template<const interface*>(ptr,reverse,end){}
+        //! 
+        //! @brief Construct a new data iterator object
+        //! 
+        //! @param ptr Wskaźnik obiektu powiązanego z iteratorem.
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        data_const_iterator(pointer ptr,bool reverse=false):
+            iterator_template<const interface*>(ptr,reverse){}
+        //! 
+        //! @brief Construct a new data iterator object
+        //! 
+        //! @param reverse Kierunek działania iteratora.
+        //! 
+        data_const_iterator(bool reverse=false):
+            iterator_template<const interface*>(reverse){}
     };
     //====================
-    data_iterator data_begin(){return data_iterator(this,false,false);}
-    data_iterator data_end(){return data_iterator(this,false,true);}
-    data_const_iterator data_cbegin() const {return data_const_iterator(this,false,false);};
-    data_const_iterator data_cend() const {return data_const_iterator(this,false,true);};
-    data_iterator data_rbegin(){return data_iterator(this,true,false);}
-    data_iterator data_rend(){return data_iterator(this,true,true);}
-    data_const_iterator data_crbegin() const {return data_const_iterator(this,true,false);};
-    data_const_iterator data_crend() const {return data_const_iterator(this,true,true);};
+    //! 
+    //! @brief Zwraca iterator wskazujący początek obieku (iteracja naprzód).
+    //! 
+    //! @return Iterator wskazujący początek obieku.
+    //! 
+    data_iterator data_begin() {
+        return data_iterator(this,false);
+    }
+    //! 
+    //! @brief Zwraca iterator kończący iterację.
+    //! 
+    //! @return Iterator kończący.
+    //! 
+    const data_iterator & data_end() const {
+        const static data_iterator i(false);
+        return (i);
+    }
+    //! 
+    //! @brief Zwraca iterator wskazujący początek obieku (iteracja naprzód - const).
+    //! 
+    //! @return Iterator wskazujący początek obieku.
+    //! 
+    data_const_iterator data_cbegin() const {
+        return data_const_iterator(this,false);
+    };
+    //! 
+    //! @brief Zwraca iterator kończący iterację (const).
+    //! 
+    //! @return Iterator kończący.
+    //! 
+    const data_const_iterator & data_cend() const {
+        const static data_const_iterator i(false);
+        return (i);
+    };
+    //! 
+    //! @brief Zwraca iterator wskazujący koniec obieku (iteracja wstecz).
+    //! 
+    //! @return Iterator wskazujący koniec obieku.
+    //! 
+    data_iterator data_rbegin(){
+        return data_iterator(this,true);
+    }
+    //! 
+    //! @brief Zwraca iterator kończący iterację.
+    //! 
+    //! @return Iterator kończący.
+    //! 
+    const data_iterator & data_rend() const {
+        const static data_iterator i(true);
+        return(i);
+    }
+    //! 
+    //! @brief Zwraca iterator wskazujący koniec obieku (iteracja wstecz - const).
+    //! 
+    //! @return Iterator wskazujący koniec obieku.
+    //! 
+    data_const_iterator data_crbegin() const {
+        return data_const_iterator(this,true);
+    };
+    //! 
+    //! @brief Zwraca iterator kończący iterację (const).
+    //! 
+    //! @return Iterator kończący.
+    //! 
+    const data_const_iterator & data_crend() const {
+        const static data_const_iterator i(true);
+        return(i);
+    };
     //====================
-    virtual int data_parse(ict::buffer::interface & buffer) const {return(0);}
-    virtual int data_serialize(ict::buffer::interface & buffer){return(0);}
-    virtual int data_validate(std::string & error){return(0);}
+    //! 
+    //! @brief Funkcja parsująca bufor binarny do obiektu.
+    //! 
+    //! @param buffer Bufor zawierający dane do parsowania.
+    //! @return Wynik parsowania - wartości:
+    //!  @li -1 - Wystąpił błąd podczas parsowania.
+    //!  @li 0 - Parsowanie zakończone.
+    //!  @li 1 - Parsowanie nie jest zakończone ze względu na niekompletne dane w buforze.
+    //! 
+    virtual int data_parse(ict::buffer::interface & buffer) {return(0);}
+    //! 
+    //! @brief Funkcja serializująca obiekt do bufora binarnego.
+    //! 
+    //! @param buffer Bufor do zapisania danych.
+    //! @return Wynik seralizowania - wartości:
+    //!  @li -1 - Wystąpił błąd podczas serializowania.
+    //!  @li 0 - Serializowanie zakończone.
+    //!  @li 1 - Serializowanie nie jest zakończone ze względu na brak miejsca w buforze.
+    //! 
+    virtual int data_serialize(ict::buffer::interface & buffer) const {return(0);}
+    //! 
+    //! @brief Funkcja walidująca obiekt.
+    //! 
+    //! @param error String do zapisywania opisu ewentualnych błędów.
+    //! @return Wynik parsowania - wartości:
+    //!  @li -1 - Wystąpił błąd podczas walidacji.
+    //!  @li 0 - Walidowanie zakończone - brak błędów.
+    //!  @li 1 - Walidowanie zakończone - wsytąpiły błędy (opis w error).
+    //!     
+    virtual int data_validate(std::string & error) const {return(0);}
+    //! 
+    //! @brief Resetowanie obiektu.
+    //! 
     virtual void data_clear(){}
+    //! 
+    //! @brief Dodaje element na początku obiektu.
+    //! 
+    //! @param tag Wskazanie tagu elementu do wstawienia.
+    //! @return Sukces lub porażka. 
+    //! 
     virtual bool data_pushFront(const std::string & tag=""){return(false);}
+    //! 
+    //! @brief Dodaje element na końcu obiektu.
+    //! 
+    //! @param tag Wskazanie tagu elementu do wstawienia.
+    //! @return Sukces lub porażka. 
+    //! 
     virtual bool data_pushBack(const std::string & tag=""){return(false);}
+    //! 
+    //! @brief Zwraca typ obiektu.
+    //! 
+    //! @return Typ obiektu. 
+    //! 
     virtual data_t data_getType() const {return(data_null);}
+    //! 
+    //! @brief Zwraca rozmiar (w zależności od kontekstu).
+    //! 
+    //! @return Rozmiar.
+    //! 
     virtual std::size_t data_getSize() const {return(0);}
+    //! 
+    //! @brief Zwraca tag elementu o indeksie index.
+    //! 
+    //! @param index Indeks elementu.
+    //! @return Tag elementu.
+    //! 
     virtual std::string data_getTag(const std::size_t & index) const {return("");}
+    //! 
+    //! @brief Zwraca interfejs elementu o indeksie index.
+    //! 
+    //! @param index 
+    //! @return interface& 
+    //! 
     virtual interface & data_getValue(const std::size_t & index) {return(*this);}
-    virtual void data_getInfo(info & output){}
+    //! 
+    //! @brief Tworzy informację o obiekcie.
+    //! 
+    //! @param output Informacja o obiekcie.
+    //! @return Sukces lub porażka. 
+    //! 
+    virtual bool data_getInfo(info & output) const {}
 };
+//===========================================
 class null_t: public interface{
 };
 template<typename T> class basic: public interface{
 public:
-    T value;
+    T value=0;
 public:
-    int data_parse(ict::buffer::interface & buffer) const {
-        if (buffer.testIn(value)){
-            buffer<<value;
-            return(0);
-        }
-        return(1);
-    }
-    int data_serialize(ict::buffer::interface & buffer){
+    //! Patrz: interface::data_parse()
+    int data_parse(ict::buffer::interface & buffer) {
         if (buffer.testOut(value)){
             buffer>>value;
             return(0);
         }
         return(1);
     }
+    //! Patrz: interface::data_serialize()
+    int data_serialize(ict::buffer::interface & buffer) const {
+        if (buffer.testIn(value)){
+            buffer<<value;
+            return(0);
+        }
+        return(1);
+    }
+    //! Patrz: interface::data_getSize()
+    std::size_t data_getSize() const {
+        return(sizeof(T));
+    }
+    //! Patrz: interface::data_clear()
+    void data_clear(){
+        value=0;
+    }
+    //! 
+    //! @brief Udostępnia zmienną.
+    //! 
+    //! @return Zmienna typu liczba.
+    //! 
     T & operator()(){
         return(value);
     }
 };
 class bool_t:public basic<bool>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_bool);}
 };
-class number_s_char_t:public basic<bool>{
+class number_s_char_t:public basic<signed char>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_char);}
 };
-class number_ss_int_t:public basic<bool>{
+class number_ss_int_t:public basic<signed short int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ss_int);}
 };
-class number_s_int_t:public basic<bool>{
+class number_s_int_t:public basic<signed int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_int);}
 };
-class number_sl_int_t:public basic<bool>{
+class number_sl_int_t:public basic<signed long int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sl_int);}
 };
-class number_sll_int_t:public basic<bool>{
+class number_sll_int_t:public basic<signed long long int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sll_int);}
 };
-class number_u_char_t:public basic<bool>{
+class number_u_char_t:public basic<unsigned char>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_u_char);}
 };
-class number_us_int_t:public basic<bool>{
+class number_us_int_t:public basic<unsigned short int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
-class number_u_int_t:public basic<bool>{
+class number_u_int_t:public basic<unsigned int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
-class number_ul_int_t:public basic<bool>{
+class number_ul_int_t:public basic<unsigned long int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ul_int);}
 };
-class number_ull_int_t:public basic<bool>{
+class number_ull_int_t:public basic<unsigned long long int>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ull_int);}
 };
-class number_float_t:public basic<bool>{
+class number_float_t:public basic<float>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_float);}
 };
-class number_double_t:public basic<bool>{
+class number_double_t:public basic<double>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_double);}
 };
-class number_l_double_t:public basic<bool>{
+class number_l_double_t:public basic<long double>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_l_double);}
 };
 template<class T> class string: public interface{
 public:
     T value;
 public:
-    int data_parse(ict::buffer::interface & buffer) const {
-        if (buffer.testIn(value)){
-            buffer<<value;
-            return(0);
-        }
-        return(1);
-    }
-    int data_serialize(ict::buffer::interface & buffer){
-        value.resize(buffer.getSize()/sizeof(value.back()));
+    //! Patrz: interface::data_parse()
+    int data_parse(ict::buffer::interface & buffer) {
         if (buffer.testOut(value)){
             buffer>>value;
             return(0);
         }
         return(1);
     }
+    //! Patrz: interface::data_serialize()
+    int data_serialize(ict::buffer::interface & buffer) const {
+        value.resize(buffer.getSize()/sizeof(value.back()));
+        if (buffer.testIn(value)){
+            buffer<<value;
+            return(0);
+        }
+        return(1);
+    }
+    //! Patrz: interface::data_getSize()
+    std::size_t data_getSize() const {
+        return(value.size());
+    }
+    //! Patrz: interface::data_clear()
+    void data_clear(){
+        value.clear();
+    }
+    //! 
+    //! @brief Udostępnia zmienną.
+    //! 
+    //! @return Zmienna typu string.
+    //! 
     T & operator()(){
         return(value);
     }
 };
 class string_string_t:public string<std::string>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_string);}
 };
 class string_wstring_t:public string<std::wstring>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_wstring);}
 };
 class string_bytes_t:public string<ict::buffer::byte_vector_t>{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_bytes);}
 };
 class string_stream_t:public interface{
 public:
+    //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_stream);}
 };
 class string_object_t:public interface{
@@ -411,6 +684,7 @@ private:
 public:
     data_t data_getType() const {return(data_array);}
 };
+//===========================================
 class info:public interface{
     //TODO
 };
