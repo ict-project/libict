@@ -459,6 +459,18 @@ public:
     //! 
     virtual interface & data_getValue(const std::size_t & index) {return(*this);}
     //! 
+    //! @brief Zwraca interfejs pierwszego elementu.
+    //! 
+    //! @return interface& 
+    //!
+    virtual interface & data_getFront() {return(data_getValue(0));}
+    //! 
+    //! @brief Zwraca interfejs ostatniego elementu.
+    //! 
+    //! @return interface& 
+    //!
+    virtual interface & data_getBack() {return(data_getValue(data_getSize()-1));}
+    //! 
     //! @brief Tworzy informację o obiekcie.
     //! 
     //! @param output Informacja o obiekcie.
@@ -634,55 +646,180 @@ public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_stream);}
 };
-class string_object_t:public interface{
+template<class T> class array_t:public std::vector<T>,public interface{
+private:
+    typedef std::vector<T> vector_t;
+public:
+    //! Patrz: interface::data_clear()
+    void data_clear(){
+        vector_t::clear();
+    }
+    //! Patrz: interface::data_pushFront()
+    bool data_pushFront(const std::string & tag=""){
+        vector_t::emplace(vector_t::begin());
+        return(true);
+    } 
+    //! Patrz: interface::data_pushBack()
+    bool data_pushBack(const std::string & tag=""){
+        vector_t::emplace_back();
+        return(true);
+    }
+    //! Patrz: interface::data_getType()
+    data_t data_getType() const {
+        return(data_array);
+    }
+    //! Patrz: interface::data_getSize()
+    std::size_t data_getSize() const {
+        return(vector_t::size());
+    }
+    //! Patrz: interface::data_getValue()
+    interface & data_getValue(const std::size_t & index) {
+        return(vector_t::operator[](index));
+    }
+    //! Patrz: interface::data_getFront()
+    virtual interface & data_getFront() {
+        return(vector_t::front());
+    }
+    //! Patrz: interface::data_getBack()
+    virtual interface & data_getBack() {
+        return(vector_t::back());
+    }
+    //! 
+    //! @brief Udostępnia sam siebie.
+    //! 
+    //! @return Ten element.
+    //! 
+    array_t<T> & operator()(){
+        return(*this);
+    }
+};
+template<class T> class object_item_t {
+    friend class object_t;
+private:
+    typedef std::vector<T> vector_t;
+    vector_t value;
+public:
+    typedef typename vector_t::iterator iterator;
+    typedef typename vector_t::const_iterator const_iterator;
+    //! 
+    //! @brief Udostępnia element o podanym indeksie.
+    //! 
+    //! @param index Indeks elementu.
+    //! @return Element.
+    //! 
+    T & operator()(const std::size_t & index){
+        return(value[index]());
+    }
+    //Iterators:
+    //begin Return iterator to beginning (public member function )
+    iterator begin()noexcept{return(value.begin());}
+    //end Return iterator to end (public member function )
+    iterator end()noexcept{return(value.end());}
+    //rbegin Return reverse iterator to reverse beginning (public member function )
+    iterator rbegin()noexcept{return(value.rbegin());}
+    //rend Return reverse iterator to reverse end (public member function )
+    iterator rend()noexcept{return(value.rend());}
+    //cbegin Return const_iterator to beginning (public member function )
+    const_iterator cbegin()const noexcept{return(value.cbegin());}
+    //cend Return const_iterator to end (public member function )
+    const_iterator cend()const noexcept{return(value.cend());}
+    //crbegin Return const_reverse_iterator to reverse beginning (public member function )
+    const_iterator crbegin()const noexcept{return(value.crbegin());}
+    //crend Return const_reverse_iterator to reverse end (public member function )
+    const_iterator crend()const noexcept{return(value.crend());}
+
+    //Capacity:
+    //size Return size (public member function )
+    std::size_t size()const noexcept{retun(value.size());}
+    //max_size Return maximum size (public member function )
+    std::size_t max_size()const noexcept{retun(value.max_size());}
+    //capacity Return size of allocated storage capacity (public member function )
+    std::size_t capacity()const noexcept{retun(value.capacity());}
+    //empty Test whether vector is empty (public member function )
+    bool empty()const noexcept{retun(value.empty());}
+
+    //Element access:
+    //operator[] Access element (public member function )
+    T & operator[](const std::size_t & index){return(value[index]);}
+    //at Access element (public member function )
+    T & at(const std::size_t & index)const{return(value.at(index));}
+    //front Access first element (public member function )
+    T & front(){return(value.front());}
+    //back Access last element (public member function )
+    T & back(){return(value.back());}
+    //data Access data (public member function )
+};
+class object_t:public interface{
 private:
     typedef std::size_t data_offset_t;
+    struct list_t {
+        data_offset_t offset;
+        std::size_t index;
+    };
     typedef std::map<std::string,data_offset_t> data_name_offset_t;
     typedef std::map<data_offset_t,std::string> data_offset_name_t;
-    typedef std::vector<data_offset_t> data_offset_vector_t;
+    typedef std::vector<list_t> data_list_vector_t;
+    //! Mapa nazwa i ofset.
     data_name_offset_t data_name_offset;
+    //! Mapa ofset i nazwa.
     data_offset_name_t data_offset_name;
-    data_offset_vector_t data_visible_prop;
-    interface * data_getPropPointer(const data_offset_t & offset);
-    data_offset_t data_getPropOffset(interface * pointer);
+    //! Lista wstawionych elementów
+    data_list_vector_t data_list_vector;
+    //! 
+    //! @brief Zamienia ofset na wskaźnik.
+    //! 
+    //! @param offset Ofset.
+    //! @return object_item_t<interface>* Wskaźnik.
+    //! 
+    object_item_t<interface> * data_getPropPointer(const data_offset_t & offset);
+    //! 
+    //! @brief Zamienia wskaźnik na ofset.
+    //! 
+    //! @param pointer Wskaźnik.
+    //! @return data_offset_t Ofset.
+    //! 
+    data_offset_t data_getPropOffset(object_item_t<interface> * pointer);
 public:
-    void data_registerProp(interface * element,const std::string & name);
-    #define data_registerNewProp(element) data_registerProp(&element,#element)
-
-    void data_hideProp(const data_offset_t & offset);    
-    void data_hideProp(interface * element);
-    void data_hideProp(const std::string & name);
-    void data_hideAllProp();
-
-    void data_showProp(const data_offset_t & offset);
-    void data_showProp(interface * element);
-    void data_showProp(const std::string & name);
-    void data_showAllProp();
-
-    bool data_isPropPresent(const data_offset_t & offset);
-    bool data_isPropPresent(interface * element);
-    bool data_isPropPresent(const std::string & name);
-    
-    //! See: ict::data:interface
+    //! 
+    //! @brief Reestruje składnik obiektu.
+    //! 
+    //! @param item Wskaźnik do składnika obiektu.
+    //! @param name Nazwa składnika obiektu.
+    //! 
+    void data_registerProp(object_item_t<interface> * item,const std::string & name);
+    #define data_registerNewProp(item) data_registerProp(&item,#item)
+    //! Patrz: interface::data_clear()
     void data_clear();
-    //! See: ict::data:interface
+    //! Patrz: interface::data_pushFront()
     bool data_pushFront(const std::string & tag="");
-    //! See: ict::data:interface
+    //! Patrz: interface::data_pushBack()
     bool data_pushBack(const std::string & tag="");
     //! See: ict::data:interface
     data_t data_getType() const {return(data_object);}
     //! See: ict::data:interface
-    std::size_t data_getSize() const {return(data_visible_prop.size());}
+    std::size_t data_getSize() const {return(data_list_vector.size());}
     //! See: ict::data:interface
     std::string data_getTag(const std::size_t & index) const;
     //! See: ict::data:interface
     interface & data_getValue(const std::size_t & index);
-};
-template<class T> class string_array_t:public std::vector<T>,public interface{
-private:
-    //TODO
-public:
-    data_t data_getType() const {return(data_array);}
+
+    //Modifiers:
+    //?push_back Add element at the end (public member function )
+    //?pop_back Delete last element (public member function )
+    //?insert Insert elements (public member function )
+    //?erase Erase elements (public member function )
+    //?swap Swap content (public member function )
+    //?clear Clear content (public member function )
+    //?resize Change size (public member function )
+
+    //! 
+    //! @brief Udostępnia sam siebie.
+    //! 
+    //! @return Ten element.
+    //! 
+    object_t & operator()(){
+        return(*this);
+    }
 };
 //===========================================
 class info:public interface{
