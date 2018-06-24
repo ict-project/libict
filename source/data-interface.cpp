@@ -72,7 +72,7 @@ static object_t::item_offset_t pointer2offset(interface * self,object_t::item_pt
   return(offset);
 }
 //============================================
-object_t::data_init::data_init(interface * self,const std::type_info & type, const object_t::item_map_t & map){
+/*object_t::data_init::data_init(interface * self,const std::type_info & type, const object_t::item_map_t & map){
   std::unique_lock<ict::mutex::read_write::write_t> lock (get_object_mutex().write);
   object_struct_t & object_struct(get_object_struct(type));
   for (object_t::item_map_t::const_iterator it=map.begin();it!=map.end();++it){
@@ -80,7 +80,7 @@ object_t::data_init::data_init(interface * self,const std::type_info & type, con
     object_struct.name_offset[it->first]=offset;
     object_struct.offset_name[offset]=it->first;
   }
-}
+}*/
 void object_t::data_clear(){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
@@ -203,6 +203,15 @@ void object_t::data_clear(item_ptr_t item){
 } }
 //===========================================
 #ifdef ENABLE_TESTING
+/*class info_pair:public ict::data::object_t{
+public:
+    item_t<ict::data::number_u_int_t> type;
+    info_pair(){
+      static ::ict::data::object_t::data_init _init__(this,typeid(*this),{
+        std::make_pair("",&type)
+      });
+    }
+};*/
 /*
 REGISTER_TEST(data_interface,tc1){
   try{

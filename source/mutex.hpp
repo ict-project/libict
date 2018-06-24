@@ -48,7 +48,13 @@ private:
     std::mutex main_mutex;
     std::mutex write_mutex;
     std::mutex read_mutex;
-    u_int32_t count=0;
+    uint32_t count=0;
+    void lock_read(){
+        if (write_priority){
+            main_mutex.lock();
+            main_mutex.unlock();
+        }
+    }
 public:
     class read_t {
     private:  
@@ -79,7 +85,7 @@ public:
     //!  @li true - zapis ma wyższy priorytet niż odczyt;
     //!  @li false - zapis ma niższy priorytet niż odczyt.
     //! 
-    read_write(bool write_priority_in=true):read(*this),write(*this),write_priority(write_priority_in){}
+    read_write(bool write_priority_in=true):write_priority(write_priority_in),read(*this),write(*this){}
 };
 //============================================
 }}

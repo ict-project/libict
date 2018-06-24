@@ -39,10 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace ict { namespace mutex {
 //===========================================
 void read_write::read_t::lock(){
-  if (object.write_priority){
-    object.main_mutex.lock();
-    object.main_mutex.unlock();
-  }
+  object.lock_read();
   {
     std::unique_lock<std::mutex> lock (object.read_mutex);
     if (object.count<0xffffffff){
@@ -52,10 +49,7 @@ void read_write::read_t::lock(){
   }
 }
 bool read_write::read_t::try_lock() noexcept {
-  if (object.write_priority){
-    object.main_mutex.lock();
-    object.main_mutex.unlock();
-  }
+  object.lock_read();
   {
     std::unique_lock<std::mutex> lock (object.read_mutex);
     if (object.count<0xffffffff){

@@ -759,6 +759,7 @@ public:
     class data_init {
     public:
         data_init(interface * self,const std::type_info & type, const item_map_t & map);
+        //data_init(interface * self,const std::type_info & type, std::initializer_list<std::pair<const std::string,item_ptr_t>> map){}
     };
     #define ict_data_init(map) static ::ict::data::object_t::data_init _init__(this,typeid(*this),map)
     #define ict_data_item(item) {#item,&item}
