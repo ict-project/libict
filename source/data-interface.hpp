@@ -762,19 +762,18 @@ private:
     };
     typedef std::vector<item_list_t> list_vector_t;
     list_vector_t list_vector;
-    void local_registerItems();
 protected:
     //! 
     //! @brief Rejestruje składniki obiektu. Funkcja do nadpisania.
     //! 
-    virtual void data_registerItems(){}
+    virtual void data_registerItems()const{}
     //! 
     //! @brief Rejestruje wskazany składnik obiektu.
     //! 
     //! @param name Nazwa składnika.
     //! @param item Wskaźnik składnika.
     //! 
-    void data_registerItem(const std::string & name,void * item);
+    void data_registerItem(const std::string & name,const void * item)const;
     #define ict_data_registerItem(item) data_registerItem(#item,&item)
 public:
     //! Patrz: interface::data_clear()
@@ -831,7 +830,7 @@ public:
     item_t<ict::data::number_u_int_t> type;
     item_t<T> value;
 private:
-    void data_registerItems(){
+    void data_registerItems()const{
       ict_data_registerItem(type);
       ict_data_registerItem(value);
     }
@@ -853,7 +852,40 @@ typedef  info_array<number_double_t> info_double_t;
 typedef  info_array<number_l_double_t> info_l_double_t;
 typedef  info_array<string_string_t> info_string_t;
 class info:public object_t{
-    //TODO
+public:
+    item_t<info_bool_t> info_bool;
+    item_t<info_s_char_t> info_s_char;
+    item_t<info_ss_int_t> info_ss_int;
+    item_t<info_s_int_t> info_s_int;
+    item_t<info_sl_int_t> info_sl_int;
+    item_t<info_sll_int_t> info_sll_int;
+    item_t<info_u_char_t> info_u_char;
+    item_t<info_us_int_t> info_us_int;
+    item_t<info_u_int_t> info_u_int;
+    item_t<info_ul_int_t> info_ul_int;
+    item_t<info_ull_int_t> info_ull_int;
+    item_t<info_float_t> info_float;
+    item_t<info_double_t> info_double;
+    item_t<info_l_double_t> info_l_double;
+    item_t<info_string_t> info_string;
+private:
+    void data_registerItems()const{
+        ict_data_registerItem(info_bool);
+        ict_data_registerItem(info_s_char);
+        ict_data_registerItem(info_ss_int);
+        ict_data_registerItem(info_s_int);
+        ict_data_registerItem(info_sl_int);
+        ict_data_registerItem(info_sll_int);
+        ict_data_registerItem(info_u_char);
+        ict_data_registerItem(info_us_int);
+        ict_data_registerItem(info_u_int);
+        ict_data_registerItem(info_ul_int);
+        ict_data_registerItem(info_ull_int);
+        ict_data_registerItem(info_float);
+        ict_data_registerItem(info_double);
+        ict_data_registerItem(info_l_double);
+        ict_data_registerItem(info_string);
+    }
 };
 //===========================================
 } }

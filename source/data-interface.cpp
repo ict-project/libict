@@ -63,21 +63,16 @@ static ict::mutex::read_write & get_object_mutex(){
   static ict::mutex::read_write mutex(true);
   return(mutex);
 }
-static object_t::item_ptr_t offset2pointer(interface * self,const object_t::item_offset_t & offset){
+static object_t::item_ptr_t offset2pointer(const interface * self,const object_t::item_offset_t & offset){
   char* pointer=((char*)self)+offset;
   return((object_t::item_t<interface>*)pointer);
 }
-static object_t::item_offset_t pointer2offset(interface * self,void * pointer){
+static object_t::item_offset_t pointer2offset(const interface * self,const void * pointer){
   object_t::item_offset_t offset=((char*)pointer)-((char*)self);
   return(offset);
 }
 //============================================
-void object_t::local_registerItems(){
-  std::unique_lock<ict::mutex::read_write::write_t> lock (get_object_mutex().write);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-}
-void object_t::data_registerItem(const std::string & name,void * item){
+void object_t::data_registerItem(const std::string & name,const void * item)const{
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
   object_t::item_offset_t offset(pointer2offset(this,item));
   object_struct.name_offset[name]=offset;
@@ -86,6 +81,7 @@ void object_t::data_registerItem(const std::string & name,void * item){
 void object_t::data_clear(){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
     item_ptr_t item=offset2pointer(this,it->first);
     if (item) {
@@ -98,6 +94,7 @@ void object_t::data_clear(){
 bool object_t::data_pushFront(const std::string & tag){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (object_struct.name_offset.count(tag)){
     item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
     if (item) {
@@ -114,6 +111,7 @@ bool object_t::data_pushFront(const std::string & tag){
 bool object_t::data_pushBack(const std::string & tag){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (object_struct.name_offset.count(tag)){
     item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
     if (item) {
@@ -130,6 +128,7 @@ bool object_t::data_pushBack(const std::string & tag){
 std::string object_t::data_getTag(const std::size_t & index) const{
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (index<list_vector.size()){
     return(object_struct.offset_name.at(list_vector.at(index).offset));
   }
@@ -139,6 +138,7 @@ std::string object_t::data_getTag(const std::size_t & index) const{
 interface & object_t::data_getValue(const std::size_t & index){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (index<list_vector.size()){
     return(offset2pointer(this,list_vector.at(index).offset)->value[list_vector.at(index).index]);
   }
@@ -149,6 +149,7 @@ interface & object_t::data_getValue(const std::size_t & index){
 void object_t::data_pushFront(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (item) {
     object_t::item_offset_t item_offset=pointer2offset(this,item);
     if (object_struct.offset_name.count(item_offset)){
@@ -167,6 +168,7 @@ void object_t::data_pushFront(void * item){
 void object_t::data_pushBack(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (item) {
     object_t::item_offset_t item_offset=pointer2offset(this,item);
     if (object_struct.offset_name.count(item_offset)){
@@ -185,6 +187,7 @@ void object_t::data_pushBack(void * item){
 void object_t::data_clear(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (!object_struct.offset_name.size()) data_registerItems();
   if (item) {
     object_t::item_offset_t item_offset=pointer2offset(this,item);
     if (object_struct.offset_name.count(item_offset)){
