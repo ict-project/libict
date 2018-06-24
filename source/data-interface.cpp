@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
 //============================================
 #include "data-interface.hpp"
+#include <typeindex>
+#include <mutex>
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
@@ -43,67 +45,159 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //============================================
-object_item_t<interface> * object_t::data_getPropPointer(const data_offset_t & offset){
-  char* pointer=((char*)this)+offset;
-  return((object_item_t<interface>*)pointer);
+struct object_struct_t {
+    typedef std::map<std::string,object_t::item_offset_t> name_offset_t;
+    typedef std::map<object_t::item_offset_t,std::string> offset_name_t;
+    //! Mapa nazwa i ofset.
+    name_offset_t name_offset;
+    //! Mapa ofset i nazwa.
+    offset_name_t offset_name;    
+};
+//============================================
+typedef std::map<std::type_index,object_struct_t> map_info_t;
+static object_struct_t & get_object_struct(const std::type_info & type){
+  static map_info_t map_info;
+  return(map_info[std::type_index(type)]);
 }
-std::size_t object_t::data_getPropOffset(object_item_t<interface> * pointer){
-  std::size_t offset=((char*)pointer)-((char*)this);
+static std::mutex & get_object_mutex(){
+  static std::mutex mutex;
+  return(mutex);
+}
+static object_t::item_ptr_t offset2pointer(interface * self,const object_t::item_offset_t & offset){
+  char* pointer=((char*)self)+offset;
+  return((object_t::item_t<interface>*)pointer);
+}
+static object_t::item_offset_t pointer2offset(interface * self,object_t::item_ptr_t pointer){
+  object_t::item_offset_t offset=((char*)pointer)-((char*)self);
   return(offset);
 }
-void object_t::data_registerProp(object_item_t<interface> * item,const std::string & name){
-  if (item){
-    std::size_t offset=data_getPropOffset(item);
-    data_name_offset[name]=offset;
-    data_offset_name[offset]=name;
+//============================================
+object_t::data_init::data_init(interface * self,const std::type_info & type, const object_t::item_map_t & map){
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(type));
+  for (object_t::item_map_t::const_iterator it=map.begin();it!=map.end();++it){
+    object_t::item_offset_t offset(pointer2offset(self,it->second));
+    object_struct.name_offset[it->first]=offset;
+    object_struct.offset_name[offset]=it->first;
   }
 }
 void object_t::data_clear(){
-  for (data_name_offset_t::const_iterator it=data_name_offset.cbegin();it!=data_name_offset.cend();++it){
-    object_item_t<interface> * item=data_getPropPointer(it->second);
-    if (item) item->value.clear();
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
+    item_ptr_t item=offset2pointer(this,it->first);
+    if (item) {
+      item->value.clear();
+      item->value.shrink_to_fit();
+    }
   }
-  data_list_vector.clear();
+  list_vector.clear();
 }
 bool object_t::data_pushFront(const std::string & tag){
-  if (data_name_offset.count(tag)){
-    object_item_t<interface> * item=data_getPropPointer(data_name_offset.at(tag));
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (object_struct.name_offset.count(tag)){
+    item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
     if (item) {
       item->value.emplace_back();
-      data_list_vector.emplace(data_list_vector.begin());
-      data_list_vector.front().offset=data_name_offset.at(tag);
-      data_list_vector.front().index=item->value.size()-1;
-    }
-    return(true);
-  }
-  return(false);
-} 
-bool object_t::data_pushBack(const std::string & tag){
-  if (data_name_offset.count(tag)){
-    object_item_t<interface> * item=data_getPropPointer(data_name_offset.at(tag));
-    if (item) {
-      item->value.emplace_back();
-      data_list_vector.emplace_back();
-      data_list_vector.back().offset=data_name_offset.at(tag);
-      data_list_vector.back().index=item->value.size()-1;
+      item->value.shrink_to_fit();
+      list_vector.emplace(list_vector.begin());
+      list_vector.front().offset=object_struct.name_offset.at(tag);
+      list_vector.front().index=item->value.size()-1;
     }
     return(true);
   }
   return(false);
 }
-std::string object_t::data_getTag(const std::size_t & index) const {
-  if (index<data_list_vector.size()){
-    return(data_offset_name.at(data_list_vector.at(index).offset));
+bool object_t::data_pushBack(const std::string & tag){
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (object_struct.name_offset.count(tag)){
+    item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
+    if (item) {
+      item->value.emplace_back();
+      item->value.shrink_to_fit();
+      list_vector.emplace_back();
+      list_vector.back().offset=object_struct.name_offset.at(tag);
+      list_vector.back().index=item->value.size()-1;
+    }
+    return(true);
+  }
+  return(false);
+}
+std::string object_t::data_getTag(const std::size_t & index) const{
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (index<list_vector.size()){
+    return(object_struct.offset_name.at(list_vector.at(index).offset));
   }
   throw std::invalid_argument("Index out of range [1]!");
   return("");
 }
 interface & object_t::data_getValue(const std::size_t & index){
-  if (index<data_list_vector.size()){
-    return(data_getPropPointer(data_list_vector.at(index).offset)->value[data_list_vector.at(index).index]);
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (index<list_vector.size()){
+    return(offset2pointer(this,list_vector.at(index).offset)->value[list_vector.at(index).index]);
   }
   throw std::invalid_argument("Index out of range [2]!");
   return(*this);
+}
+void object_t::data_pushFront(item_ptr_t item){
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (item) {
+    object_t::item_offset_t item_offset=pointer2offset(this,item);
+    if (object_struct.offset_name.count(item_offset)){
+      item->value.emplace_back();
+      item->value.shrink_to_fit();
+      list_vector.emplace(list_vector.begin());
+      list_vector.front().offset=item_offset;
+      list_vector.front().index=item->value.size()-1;
+      return;
+    }
+    throw std::invalid_argument("Missing item [1]!");
+  } else {
+    throw std::invalid_argument("Missing item [2]!");
+  }
+}
+void object_t::data_pushBack(item_ptr_t item){
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (item) {
+    object_t::item_offset_t item_offset=pointer2offset(this,item);
+    if (object_struct.offset_name.count(item_offset)){
+      item->value.emplace_back();
+      item->value.shrink_to_fit();
+      list_vector.emplace_back();
+      list_vector.back().offset=item_offset;
+      list_vector.back().index=item->value.size()-1;
+      return;
+    }
+    throw std::invalid_argument("Missing item [1]!");
+  } else {
+    throw std::invalid_argument("Missing item [2]!");
+  }
+}
+void object_t::data_clear(item_ptr_t item){
+  std::unique_lock<std::mutex> lock (get_object_mutex());
+  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  if (item) {
+    object_t::item_offset_t item_offset=pointer2offset(this,item);
+    if (object_struct.offset_name.count(item_offset)){
+      item->value.clear();
+      item->value.shrink_to_fit();
+      list_vector_t new_vector(list_vector);
+      list_vector.clear();
+      for (const item_list_t & i : new_vector) if (i.offset!=item_offset) {
+        list_vector.emplace_back(i);
+      }
+      return;
+    }
+    throw std::invalid_argument("Missing item [1]!");
+  } else {
+    throw std::invalid_argument("Missing item [2]!");
+  }
 }
 //===========================================
 } }

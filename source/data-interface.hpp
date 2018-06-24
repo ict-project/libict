@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <map>
 #include <stack>
+#include <typeinfo>
 //============================================
 namespace ict { namespace data {
 //===========================================
@@ -693,125 +694,116 @@ public:
         return(*this);
     }
 };
-template<class T> class object_item_t {
-    friend class object_t;
-private:
-    typedef std::vector<T> vector_t;
-    vector_t value;
-public:
-    typedef typename vector_t::iterator iterator;
-    typedef typename vector_t::const_iterator const_iterator;
-    //! 
-    //! @brief Udostępnia element o podanym indeksie.
-    //! 
-    //! @param index Indeks elementu.
-    //! @return Element.
-    //! 
-    T & operator()(const std::size_t & index){
-        return(value[index]());
-    }
-    //Iterators:
-    //begin Return iterator to beginning (public member function )
-    iterator begin()noexcept{return(value.begin());}
-    //end Return iterator to end (public member function )
-    iterator end()noexcept{return(value.end());}
-    //rbegin Return reverse iterator to reverse beginning (public member function )
-    iterator rbegin()noexcept{return(value.rbegin());}
-    //rend Return reverse iterator to reverse end (public member function )
-    iterator rend()noexcept{return(value.rend());}
-    //cbegin Return const_iterator to beginning (public member function )
-    const_iterator cbegin()const noexcept{return(value.cbegin());}
-    //cend Return const_iterator to end (public member function )
-    const_iterator cend()const noexcept{return(value.cend());}
-    //crbegin Return const_reverse_iterator to reverse beginning (public member function )
-    const_iterator crbegin()const noexcept{return(value.crbegin());}
-    //crend Return const_reverse_iterator to reverse end (public member function )
-    const_iterator crend()const noexcept{return(value.crend());}
-
-    //Capacity:
-    //size Return size (public member function )
-    std::size_t size()const noexcept{retun(value.size());}
-    //max_size Return maximum size (public member function )
-    std::size_t max_size()const noexcept{retun(value.max_size());}
-    //capacity Return size of allocated storage capacity (public member function )
-    std::size_t capacity()const noexcept{retun(value.capacity());}
-    //empty Test whether vector is empty (public member function )
-    bool empty()const noexcept{retun(value.empty());}
-
-    //Element access:
-    //operator[] Access element (public member function )
-    T & operator[](const std::size_t & index){return(value[index]);}
-    //at Access element (public member function )
-    T & at(const std::size_t & index)const{return(value.at(index));}
-    //front Access first element (public member function )
-    T & front(){return(value.front());}
-    //back Access last element (public member function )
-    T & back(){return(value.back());}
-    //data Access data (public member function )
-};
 class object_t:public interface{
-private:
-    typedef std::size_t data_offset_t;
-    struct list_t {
-        data_offset_t offset;
-        std::size_t index;
-    };
-    typedef std::map<std::string,data_offset_t> data_name_offset_t;
-    typedef std::map<data_offset_t,std::string> data_offset_name_t;
-    typedef std::vector<list_t> data_list_vector_t;
-    //! Mapa nazwa i ofset.
-    data_name_offset_t data_name_offset;
-    //! Mapa ofset i nazwa.
-    data_offset_name_t data_offset_name;
-    //! Lista wstawionych elementów
-    data_list_vector_t data_list_vector;
-    //! 
-    //! @brief Zamienia ofset na wskaźnik.
-    //! 
-    //! @param offset Ofset.
-    //! @return object_item_t<interface>* Wskaźnik.
-    //! 
-    object_item_t<interface> * data_getPropPointer(const data_offset_t & offset);
-    //! 
-    //! @brief Zamienia wskaźnik na ofset.
-    //! 
-    //! @param pointer Wskaźnik.
-    //! @return data_offset_t Ofset.
-    //! 
-    data_offset_t data_getPropOffset(object_item_t<interface> * pointer);
 public:
-    //! 
-    //! @brief Reestruje składnik obiektu.
-    //! 
-    //! @param item Wskaźnik do składnika obiektu.
-    //! @param name Nazwa składnika obiektu.
-    //! 
-    void data_registerProp(object_item_t<interface> * item,const std::string & name);
-    #define data_registerNewProp(item) data_registerProp(&item,#item)
+    template<class T> class item_t {
+        friend class object_t;
+    private:
+        typedef std::vector<T> vector_t;
+        vector_t value;
+    public:
+        typedef typename vector_t::iterator iterator;
+        typedef typename vector_t::const_iterator const_iterator;
+        //! 
+        //! @brief Udostępnia element o podanym indeksie.
+        //! 
+        //! @param index Indeks elementu.
+        //! @return Element.
+        //! 
+        T & operator()(const std::size_t & index){
+            return(value[index]());
+        }
+        //Iterators:
+        //begin Return iterator to beginning (public member function )
+        iterator begin()noexcept{return(value.begin());}
+        //end Return iterator to end (public member function )
+        iterator end()noexcept{return(value.end());}
+        //rbegin Return reverse iterator to reverse beginning (public member function )
+        iterator rbegin()noexcept{return(value.rbegin());}
+        //rend Return reverse iterator to reverse end (public member function )
+        iterator rend()noexcept{return(value.rend());}
+        //cbegin Return const_iterator to beginning (public member function )
+        const_iterator cbegin()const noexcept{return(value.cbegin());}
+        //cend Return const_iterator to end (public member function )
+        const_iterator cend()const noexcept{return(value.cend());}
+        //crbegin Return const_reverse_iterator to reverse beginning (public member function )
+        const_iterator crbegin()const noexcept{return(value.crbegin());}
+        //crend Return const_reverse_iterator to reverse end (public member function )
+        const_iterator crend()const noexcept{return(value.crend());}
+
+        //Capacity:
+        //size Return size (public member function )
+        std::size_t size()const noexcept{retun(value.size());}
+        //max_size Return maximum size (public member function )
+        std::size_t max_size()const noexcept{retun(value.max_size());}
+        //capacity Return size of allocated storage capacity (public member function )
+        std::size_t capacity()const noexcept{retun(value.capacity());}
+        //empty Test whether vector is empty (public member function )
+        bool empty()const noexcept{retun(value.empty());}
+
+        //Element access:
+        //operator[] Access element (public member function )
+        T & operator[](const std::size_t & index){return(value[index]);}
+        //at Access element (public member function )
+        T & at(const std::size_t & index)const{return(value.at(index));}
+        //front Access first element (public member function )
+        T & front(){return(value.front());}
+        //back Access last element (public member function )
+        T & back(){return(value.back());}
+        //data Access data (public member function )
+    };
+    typedef std::size_t item_offset_t;
+    typedef std::size_t item_index_t;
+    typedef item_t<interface>* item_ptr_t;
+    typedef std::map<std::string,item_ptr_t> item_map_t;
+    class data_init {
+    public:
+        data_init(interface * self,const std::type_info & type, const item_map_t & map);
+    };
+    #define ict_data_init(map) static ::ict:data::object_t::data_init _init__(this,typeid(*this),map)
+    #define ict_data_item(item) {#item,&item}
+private:
+    struct item_list_t {
+        item_offset_t offset;
+        item_index_t index;
+    };
+    typedef std::vector<item_list_t> list_vector_t;
+    list_vector_t list_vector;
+public:
     //! Patrz: interface::data_clear()
     void data_clear();
     //! Patrz: interface::data_pushFront()
     bool data_pushFront(const std::string & tag="");
     //! Patrz: interface::data_pushBack()
     bool data_pushBack(const std::string & tag="");
-    //! See: ict::data:interface
+    //! Patrz: ict::data:interface
     data_t data_getType() const {return(data_object);}
-    //! See: ict::data:interface
-    std::size_t data_getSize() const {return(data_list_vector.size());}
-    //! See: ict::data:interface
+    //! Patrz: ict::data:interface
+    std::size_t data_getSize() const {return(list_vector.size());}
+    //! Patrz: ict::data:interface
     std::string data_getTag(const std::size_t & index) const;
-    //! See: ict::data:interface
+    //! Patrz: ict::data:interface
     interface & data_getValue(const std::size_t & index);
-
-    //Modifiers:
-    //?push_back Add element at the end (public member function )
-    //?pop_back Delete last element (public member function )
-    //?insert Insert elements (public member function )
-    //?erase Erase elements (public member function )
-    //?swap Swap content (public member function )
-    //?clear Clear content (public member function )
-    //?resize Change size (public member function )
-
+    //=================================
+    //! 
+    //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na początku.
+    //! 
+    //! @param item Wskaźnik składnika obiektu.
+    //! 
+    void data_pushFront(item_ptr_t item);
+    //! 
+    //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na końcu.
+    //! 
+    //! @param item Wskaźnik składnika obiektu.
+    //! 
+    void data_pushBack(item_ptr_t item);
+    //! 
+    //! @brief Czyści wskazany składnik obiektu.
+    //! 
+    //! @param item Wskaźnik składnika obiektu.
+    //! 
+    void data_clear(item_ptr_t item);
+    //=================================
     //! 
     //! @brief Udostępnia sam siebie.
     //! 
