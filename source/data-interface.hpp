@@ -760,8 +760,9 @@ public:
     public:
         data_init(interface * self,const std::type_info & type, const item_map_t & map);
     };
-    #define ict_data_init(map) static ::ict:data::object_t::data_init _init__(this,typeid(*this),map)
+    #define ict_data_init(map) static ::ict::data::object_t::data_init _init__(this,typeid(*this),map)
     #define ict_data_item(item) {#item,&item}
+    #define ict_data_last {nullptr,nullptr}
 private:
     struct item_list_t {
         item_offset_t offset;
@@ -814,7 +815,25 @@ public:
     }
 };
 //===========================================
-class info:public interface{
+enum info_types_t{
+    info_min=1,
+    info_max=2,
+    info_regex=3,
+};
+/*
+template<class T> class info_pair:public object_t{
+public:
+    number_u_int_t type=0;
+    T value;
+    info_pair(){
+        ict_data_init(({
+            {"type",type},
+            {nullptr,nullptr},
+        }));
+    }
+};
+*/
+class info:public object_t{
     //TODO
 };
 //===========================================
