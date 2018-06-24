@@ -755,15 +755,6 @@ public:
     typedef std::size_t item_offset_t;
     typedef std::size_t item_index_t;
     typedef item_t<interface>* item_ptr_t;
-    typedef std::map<std::string,item_ptr_t> item_map_t;
-    class data_init {
-    public:
-        data_init(interface * self,const std::type_info & type, const item_map_t & map);
-        //data_init(interface * self,const std::type_info & type, std::initializer_list<std::pair<const std::string,item_ptr_t>> map){}
-    };
-    #define ict_data_init(map) static ::ict::data::object_t::data_init _init__(this,typeid(*this),map)
-    #define ict_data_item(item) {#item,&item}
-    #define ict_data_last {nullptr,nullptr}
 private:
     struct item_list_t {
         item_offset_t offset;
@@ -771,6 +762,20 @@ private:
     };
     typedef std::vector<item_list_t> list_vector_t;
     list_vector_t list_vector;
+    void local_registerItems();
+protected:
+    //! 
+    //! @brief Rejestruje składniki obiektu. Funkcja do nadpisania.
+    //! 
+    virtual void data_registerItems(){}
+    //! 
+    //! @brief Rejestruje wskazany składnik obiektu.
+    //! 
+    //! @param name Nazwa składnika.
+    //! @param item Wskaźnik składnika.
+    //! 
+    void data_registerItem(const std::string & name,void * item);
+    #define ict_data_registerItem(item) data_registerItem(#item,&item)
 public:
     //! Patrz: interface::data_clear()
     void data_clear();
@@ -792,19 +797,19 @@ public:
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_pushFront(item_ptr_t item);
+    void data_pushFront(void * item);
     //! 
     //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na końcu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_pushBack(item_ptr_t item);
+    void data_pushBack(void * item);
     //! 
     //! @brief Czyści wskazany składnik obiektu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_clear(item_ptr_t item);
+    void data_clear(void * item);
     //=================================
     //! 
     //! @brief Udostępnia sam siebie.
@@ -821,19 +826,32 @@ enum info_types_t{
     info_max=2,
     info_regex=3,
 };
-/*
 template<class T> class info_pair:public object_t{
 public:
-    number_u_int_t type=0;
-    T value;
-    info_pair(){
-        ict_data_init(({
-            {"type",type},
-            {nullptr,nullptr},
-        }));
+    item_t<ict::data::number_u_int_t> type;
+    item_t<T> value;
+private:
+    void data_registerItems(){
+      ict_data_registerItem(type);
+      ict_data_registerItem(value);
     }
 };
-*/
+template<class T> class info_array:public array_t<info_pair<T>>{};
+typedef  info_array<bool_t> info_bool_t;
+typedef  info_array<number_s_char_t> info_s_char_t;
+typedef  info_array<number_ss_int_t> info_ss_int_t;
+typedef  info_array<number_s_int_t> info_s_int_t;
+typedef  info_array<number_sl_int_t> info_sl_int_t;
+typedef  info_array<number_sll_int_t> info_sll_int_t;
+typedef  info_array<number_u_char_t> info_u_char_t;
+typedef  info_array<number_us_int_t> info_us_int_t;
+typedef  info_array<number_u_int_t> info_u_int_t;
+typedef  info_array<number_ul_int_t> info_ul_int_t;
+typedef  info_array<number_ull_int_t> info_ull_int_t;
+typedef  info_array<number_float_t> info_float_t;
+typedef  info_array<number_double_t> info_double_t;
+typedef  info_array<number_l_double_t> info_l_double_t;
+typedef  info_array<string_string_t> info_string_t;
 class info:public object_t{
     //TODO
 };
