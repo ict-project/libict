@@ -762,6 +762,7 @@ private:
     };
     typedef std::vector<item_list_t> list_vector_t;
     list_vector_t list_vector;
+    void registerItems()const;
 protected:
     //! 
     //! @brief Rejestruje składniki obiektu. Funkcja do nadpisania.

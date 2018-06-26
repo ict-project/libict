@@ -55,9 +55,18 @@ struct object_struct_t {
 };
 //============================================
 typedef std::map<std::type_index,object_struct_t> map_info_t;
-static object_struct_t & get_object_struct(const std::type_info & type){
+static map_info_t & get_map_info(){
   static map_info_t map_info;
-  return(map_info[std::type_index(type)]);
+  return(map_info);
+}
+static bool get_map_info_test(const std::type_info & type){
+  return(get_map_info().count(std::type_index(type)));
+}
+static object_struct_t & get_map_info_new(const std::type_info & type){
+  return(get_map_info()[std::type_index(type)]);
+}
+static object_struct_t & get_map_info_at(const std::type_info & type){
+  return(get_map_info().at(std::type_index(type)));
 }
 static ict::mutex::read_write & get_object_mutex(){
   static ict::mutex::read_write mutex(true);
@@ -72,75 +81,96 @@ static object_t::item_offset_t pointer2offset(const interface * self,const void 
   return(offset);
 }
 //============================================
+void object_t::registerItems()const{
+  if (!get_map_info_test(typeid(*this))){
+    get_object_mutex().read.unlock();//Na chwilę przerwij doczyt
+    {//Rozpocznij zapis
+      std::unique_lock<ict::mutex::read_write::write_t> lock (get_object_mutex().write);
+      data_registerItems();
+    }
+    get_object_mutex().read.lock();//Przywróć doczyt
+  }
+}
 void object_t::data_registerItem(const std::string & name,const void * item)const{
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
+  object_struct_t & object_struct(get_map_info_new(typeid(*this)));
   object_t::item_offset_t offset(pointer2offset(this,item));
   object_struct.name_offset[name]=offset;
   object_struct.offset_name[offset]=name;
 }
 void object_t::data_clear(){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
-    item_ptr_t item=offset2pointer(this,it->first);
-    if (item) {
-      item->value.clear();
-      item->value.shrink_to_fit();
+  registerItems();
+  {  
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (!object_struct.offset_name.size()) 
+    for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
+      item_ptr_t item=offset2pointer(this,it->first);
+      if (item) {
+        item->value.clear();
+        item->value.shrink_to_fit();
+      }
     }
+    list_vector.clear();
   }
-  list_vector.clear();
 }
 bool object_t::data_pushFront(const std::string & tag){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (object_struct.name_offset.count(tag)){
-    item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
-    if (item) {
-      item->value.emplace_back();
-      item->value.shrink_to_fit();
-      list_vector.emplace(list_vector.begin());
-      list_vector.front().offset=object_struct.name_offset.at(tag);
-      list_vector.front().index=item->value.size()-1;
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (object_struct.name_offset.count(tag)){
+      item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
+      if (item) {
+        item->value.emplace_back();
+        item->value.shrink_to_fit();
+        list_vector.emplace(list_vector.begin());
+        list_vector.front().offset=object_struct.name_offset.at(tag);
+        list_vector.front().index=item->value.size()-1;
+      }
+      return(true);
     }
-    return(true);
   }
   return(false);
 }
 bool object_t::data_pushBack(const std::string & tag){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (object_struct.name_offset.count(tag)){
-    item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
-    if (item) {
-      item->value.emplace_back();
-      item->value.shrink_to_fit();
-      list_vector.emplace_back();
-      list_vector.back().offset=object_struct.name_offset.at(tag);
-      list_vector.back().index=item->value.size()-1;
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (object_struct.name_offset.count(tag)){
+      item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
+      if (item) {
+        item->value.emplace_back();
+        item->value.shrink_to_fit();
+        list_vector.emplace_back();
+        list_vector.back().offset=object_struct.name_offset.at(tag);
+        list_vector.back().index=item->value.size()-1;
+      }
+      return(true);
     }
-    return(true);
   }
   return(false);
 }
 std::string object_t::data_getTag(const std::size_t & index) const{
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (index<list_vector.size()){
-    return(object_struct.offset_name.at(list_vector.at(index).offset));
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (index<list_vector.size()){
+      return(object_struct.offset_name.at(list_vector.at(index).offset));
+    }
   }
   throw std::invalid_argument("Index out of range [1]!");
   return("");
 }
 interface & object_t::data_getValue(const std::size_t & index){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (index<list_vector.size()){
-    return(offset2pointer(this,list_vector.at(index).offset)->value[list_vector.at(index).index]);
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (index<list_vector.size()){
+      return(offset2pointer(this,list_vector.at(index).offset)->value[list_vector.at(index).index]);
+    }
   }
   throw std::invalid_argument("Index out of range [2]!");
   return(*this);
@@ -148,61 +178,67 @@ interface & object_t::data_getValue(const std::size_t & index){
 #define format_pointer(ptr) ((item_ptr_t)ptr)
 void object_t::data_pushFront(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (item) {
-    object_t::item_offset_t item_offset=pointer2offset(this,item);
-    if (object_struct.offset_name.count(item_offset)){
-      format_pointer(item)->value.emplace_back();
-      format_pointer(item)->value.shrink_to_fit();
-      list_vector.emplace(list_vector.begin());
-      list_vector.front().offset=item_offset;
-      list_vector.front().index=format_pointer(item)->value.size()-1;
-      return;
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (item) {
+      object_t::item_offset_t item_offset=pointer2offset(this,item);
+      if (object_struct.offset_name.count(item_offset)){
+        format_pointer(item)->value.emplace_back();
+        format_pointer(item)->value.shrink_to_fit();
+        list_vector.emplace(list_vector.begin());
+        list_vector.front().offset=item_offset;
+        list_vector.front().index=format_pointer(item)->value.size()-1;
+        return;
+      }
+      throw std::invalid_argument("Missing item [1]!");
+    } else {
+      throw std::invalid_argument("Missing item [2]!");
     }
-    throw std::invalid_argument("Missing item [1]!");
-  } else {
-    throw std::invalid_argument("Missing item [2]!");
   }
 }
 void object_t::data_pushBack(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (item) {
-    object_t::item_offset_t item_offset=pointer2offset(this,item);
-    if (object_struct.offset_name.count(item_offset)){
-      format_pointer(item)->value.emplace_back();
-      format_pointer(item)->value.shrink_to_fit();
-      list_vector.emplace_back();
-      list_vector.back().offset=item_offset;
-      list_vector.back().index=format_pointer(item)->value.size()-1;
-      return;
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (item) {
+      object_t::item_offset_t item_offset=pointer2offset(this,item);
+      if (object_struct.offset_name.count(item_offset)){
+        format_pointer(item)->value.emplace_back();
+        format_pointer(item)->value.shrink_to_fit();
+        list_vector.emplace_back();
+        list_vector.back().offset=item_offset;
+        list_vector.back().index=format_pointer(item)->value.size()-1;
+        return;
+      }
+      throw std::invalid_argument("Missing item [1]!");
+    } else {
+      throw std::invalid_argument("Missing item [2]!");
     }
-    throw std::invalid_argument("Missing item [1]!");
-  } else {
-    throw std::invalid_argument("Missing item [2]!");
   }
 }
 void object_t::data_clear(void * item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
-  object_struct_t & object_struct(get_object_struct(typeid(*this)));
-  if (!object_struct.offset_name.size()) data_registerItems();
-  if (item) {
-    object_t::item_offset_t item_offset=pointer2offset(this,item);
-    if (object_struct.offset_name.count(item_offset)){
-      format_pointer(item)->value.clear();
-      format_pointer(item)->value.shrink_to_fit();
-      list_vector_t new_vector(list_vector);
-      list_vector.clear();
-      for (const item_list_t & i : new_vector) if (i.offset!=item_offset) {
-        list_vector.emplace_back(i);
+  registerItems();
+  {
+    object_struct_t & object_struct(get_map_info_at(typeid(*this)));
+    if (item) {
+      object_t::item_offset_t item_offset=pointer2offset(this,item);
+      if (object_struct.offset_name.count(item_offset)){
+        format_pointer(item)->value.clear();
+        format_pointer(item)->value.shrink_to_fit();
+        list_vector_t new_vector(list_vector);
+        list_vector.clear();
+        for (const item_list_t & i : new_vector) if (i.offset!=item_offset) {
+          list_vector.emplace_back(i);
+        }
+        return;
       }
-      return;
+      throw std::invalid_argument("Missing item [1]!");
+    } else {
+      throw std::invalid_argument("Missing item [2]!");
     }
-    throw std::invalid_argument("Missing item [1]!");
-  } else {
-    throw std::invalid_argument("Missing item [2]!");
   }
 }
 //===========================================
