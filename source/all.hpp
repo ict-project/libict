@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utf8.hpp"
 #include "options.hpp"
 #include "time.hpp"
+#include "mutex.hpp"
 #include "os.hpp"
 #include "logger.hpp"
 #include "random.hpp"
@@ -47,5 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "daemon.hpp"
 #include "pool.hpp"
 #include "json-object.hpp"
+#include "data-interface.hpp"
 //===========================================
 #endif

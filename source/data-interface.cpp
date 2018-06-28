@@ -105,10 +105,8 @@ void object_t::data_clear(){
     if (!object_struct.offset_name.size()) 
     for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
       item_ptr_t item=offset2pointer(this,it->first);
-      if (item) {
-        item->value.clear();
-        item->value.shrink_to_fit();
-      }
+      if (item) item->clear();
+
     }
     list_vector.clear();
   }
@@ -121,11 +119,10 @@ bool object_t::data_pushFront(const std::string & tag){
     if (object_struct.name_offset.count(tag)){
       item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
       if (item) {
-        item->value.emplace_back();
-        item->value.shrink_to_fit();
+        item->emplace_back();
         list_vector.emplace(list_vector.begin());
         list_vector.front().offset=object_struct.name_offset.at(tag);
-        list_vector.front().index=item->value.size()-1;
+        list_vector.front().index=item->size()-1;
       }
       return(true);
     }
@@ -140,11 +137,10 @@ bool object_t::data_pushBack(const std::string & tag){
     if (object_struct.name_offset.count(tag)){
       item_ptr_t item=offset2pointer(this,object_struct.name_offset.at(tag));
       if (item) {
-        item->value.emplace_back();
-        item->value.shrink_to_fit();
+        item->emplace_back();
         list_vector.emplace_back();
         list_vector.back().offset=object_struct.name_offset.at(tag);
-        list_vector.back().index=item->value.size()-1;
+        list_vector.back().index=item->size()-1;
       }
       return(true);
     }
@@ -169,7 +165,7 @@ interface & object_t::data_getValue(const std::size_t & index){
   {
     object_struct_t & object_struct(get_map_info_at(typeid(*this)));
     if (index<list_vector.size()){
-      return(offset2pointer(this,list_vector.at(index).offset)->value[list_vector.at(index).index]);
+      return(offset2pointer(this,list_vector.at(index).offset)->get_interface(list_vector.at(index).index));
     }
   }
   throw std::invalid_argument("Index out of range [2]!");
@@ -184,11 +180,10 @@ void object_t::data_pushFront(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->value.emplace_back();
-        format_pointer(item)->value.shrink_to_fit();
+        format_pointer(item)->emplace_back();
         list_vector.emplace(list_vector.begin());
         list_vector.front().offset=item_offset;
-        list_vector.front().index=format_pointer(item)->value.size()-1;
+        list_vector.front().index=format_pointer(item)->size()-1;
         return;
       }
       throw std::invalid_argument("Missing item [1]!");
@@ -205,11 +200,10 @@ void object_t::data_pushBack(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->value.emplace_back();
-        format_pointer(item)->value.shrink_to_fit();
+        format_pointer(item)->emplace_back();
         list_vector.emplace_back();
         list_vector.back().offset=item_offset;
-        list_vector.back().index=format_pointer(item)->value.size()-1;
+        list_vector.back().index=format_pointer(item)->size()-1;
         return;
       }
       throw std::invalid_argument("Missing item [1]!");
@@ -226,8 +220,7 @@ void object_t::data_clear(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->value.clear();
-        format_pointer(item)->value.shrink_to_fit();
+        format_pointer(item)->clear();
         list_vector_t new_vector(list_vector);
         list_vector.clear();
         for (const item_list_t & i : new_vector) if (i.offset!=item_offset) {
@@ -245,71 +238,17 @@ void object_t::data_clear(void * item){
 } }
 //===========================================
 #ifdef ENABLE_TESTING
-/*class info_pair:public ict::data::object_t{
-public:
-    item_t<ict::data::number_u_int_t> type;
-    void data_registerItems(){
-      ict_data_registerItem(type);
-    }
-};*/
-/*
 REGISTER_TEST(data_interface,tc1){
   try{
-    ict::buffer::basic b; 
-    signed char in1,out1;
-    signed short int in2,out2;
-    signed int in3,out3;
-    signed long int in4,out4;
-    signed long long int in5,out5;
-    unsigned char in6,out6;
-    unsigned short int in7,out7;
-    unsigned int in8,out8;
-    unsigned long int in9,out9;
-    unsigned long long int in10,out10;
-    float in11,out11;
-    double in12,out12;
-    long double in13,out13;
-    bool in14,out14;
-    std::string in15,out15;
-    std::wstring in16,out16;
-    ict::buffer::byte_vector_t in17,out17;
-    random(in1);
-    random(in2);
-    random(in3);
-    random(in4);
-    random(in5);
-    random(in6);
-    random(in7);
-    random(in8);
-    random(in9);
-    random(in10);
-    random(in11);
-    random(in12);
-    random(in13);
-    random(in14);
-    in15=ict::random::randomString(100);
-    test(in1,out1,b);
-    test(in2,out2,b);
-    test(in3,out3,b);
-    test(in4,out4,b);
-    test(in5,out5,b);
-    test(in6,out6,b);
-    test(in7,out7,b);
-    test(in8,out8,b);
-    test(in9,out9,b);
-    test(in10,out10,b);
-    test(in11,out11,b);
-    test(in12,out12,b);
-    test(in13,out13,b);
-    test(in14,out14,b);
-    out15.resize(in15.size());
-    test(in15,out15,b);
+    ict::data::info i;
+    i.data_pushBack(&(i.info_double));
+    i.data_pushBack(&(i.info_string));
+
   }catch(const std::exception & e){
     std::cerr<<"ERROR: "<<e.what()<<"!"<<std::endl;
     return(1);
   }
   return(0);
 }
-*/
 #endif
 //===========================================

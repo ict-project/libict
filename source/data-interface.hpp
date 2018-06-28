@@ -595,6 +595,7 @@ public:
 public:
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
+        value.resize(buffer.getSize()/sizeof(value.back()));
         if (buffer.testOut(value)){
             buffer>>value;
             return(0);
@@ -603,7 +604,6 @@ public:
     }
     //! Patrz: interface::data_serialize()
     int data_serialize(ict::buffer::interface & buffer) const {
-        value.resize(buffer.getSize()/sizeof(value.back()));
         if (buffer.testIn(value)){
             buffer<<value;
             return(0);
@@ -696,11 +696,39 @@ public:
 };
 class object_t:public interface{
 public:
-    template<class T> class item_t {
+    class item_interface_t {
         friend class object_t;
+    private:
+        virtual void emplace_back()=0;
+        virtual void clear()=0;
+        virtual interface & get_interface(const std::size_t & index)=0;
+    public:
+        
+        //Capacity:
+        //size Return size (public member function )
+        virtual std::size_t size()const noexcept=0;
+        //max_size Return maximum size (public member function )
+        virtual std::size_t max_size()const noexcept=0;
+        //capacity Return size of allocated storage capacity (public member function )
+        virtual std::size_t capacity()const noexcept=0;
+        //empty Test whether vector is empty (public member function )
+        virtual bool empty()const noexcept=0;
+    };
+    template<class T> class item_t: public item_interface_t {
     private:
         typedef std::vector<T> vector_t;
         vector_t value;
+        void emplace_back(){
+            value.emplace_back();
+            value.shrink_to_fit();
+        }
+        void clear(){
+            value.clear();
+            value.shrink_to_fit();
+        }
+        virtual interface & get_interface(const std::size_t & index){
+            return(value[index]);
+        }
     public:
         typedef typename vector_t::iterator iterator;
         typedef typename vector_t::const_iterator const_iterator;
@@ -710,7 +738,7 @@ public:
         //! @param index Indeks elementu.
         //! @return Element.
         //! 
-        T & operator()(const std::size_t & index){
+        T & operator()(const std::size_t & index=0){
             return(value[index]());
         }
         //Iterators:
@@ -733,13 +761,13 @@ public:
 
         //Capacity:
         //size Return size (public member function )
-        std::size_t size()const noexcept{retun(value.size());}
+        std::size_t size()const noexcept{return(value.size());}
         //max_size Return maximum size (public member function )
-        std::size_t max_size()const noexcept{retun(value.max_size());}
+        std::size_t max_size()const noexcept{return(value.max_size());}
         //capacity Return size of allocated storage capacity (public member function )
-        std::size_t capacity()const noexcept{retun(value.capacity());}
+        std::size_t capacity()const noexcept{return(value.capacity());}
         //empty Test whether vector is empty (public member function )
-        bool empty()const noexcept{retun(value.empty());}
+        bool empty()const noexcept{return(value.empty());}
 
         //Element access:
         //operator[] Access element (public member function )
@@ -754,7 +782,7 @@ public:
     };
     typedef std::size_t item_offset_t;
     typedef std::size_t item_index_t;
-    typedef item_t<interface>* item_ptr_t;
+    typedef item_interface_t* item_ptr_t;
 private:
     struct item_list_t {
         item_offset_t offset;
@@ -821,11 +849,6 @@ public:
     }
 };
 //===========================================
-enum info_types_t{
-    info_min=1,
-    info_max=2,
-    info_regex=3,
-};
 template<class T> class info_pair:public object_t{
 public:
     item_t<ict::data::number_u_int_t> type;
@@ -852,6 +875,8 @@ typedef  info_array<number_float_t> info_float_t;
 typedef  info_array<number_double_t> info_double_t;
 typedef  info_array<number_l_double_t> info_l_double_t;
 typedef  info_array<string_string_t> info_string_t;
+typedef  info_array<info> info_children_t;
+//! Zwraca informacje o obiekcie.
 class info:public object_t{
 public:
     item_t<info_bool_t> info_bool;
@@ -869,6 +894,7 @@ public:
     item_t<info_double_t> info_double;
     item_t<info_l_double_t> info_l_double;
     item_t<info_string_t> info_string;
+    item_t<info_children_t> info_children;
 private:
     void data_registerItems()const{
         ict_data_registerItem(info_bool);
@@ -886,6 +912,7 @@ private:
         ict_data_registerItem(info_double);
         ict_data_registerItem(info_l_double);
         ict_data_registerItem(info_string);
+        ict_data_registerItem(info_children);
     }
 };
 //===========================================
