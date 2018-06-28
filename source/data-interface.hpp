@@ -825,19 +825,19 @@ public:
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_pushFront(void * item);
+    void data_pushFront(item_ptr_t item);
     //! 
     //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na końcu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_pushBack(void * item);
+    void data_pushBack(item_ptr_t item);
     //! 
     //! @brief Czyści wskazany składnik obiektu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
-    void data_clear(void * item);
+    void data_clear(item_ptr_t item);
     //=================================
     //! 
     //! @brief Udostępnia sam siebie.

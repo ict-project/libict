@@ -106,7 +106,6 @@ void object_t::data_clear(){
     for (object_struct_t::offset_name_t::const_iterator it=object_struct.offset_name.cbegin();it!=object_struct.offset_name.cend();++it){
       item_ptr_t item=offset2pointer(this,it->first);
       if (item) item->clear();
-
     }
     list_vector.clear();
   }
@@ -171,8 +170,7 @@ interface & object_t::data_getValue(const std::size_t & index){
   throw std::invalid_argument("Index out of range [2]!");
   return(*this);
 }
-#define format_pointer(ptr) ((item_ptr_t)ptr)
-void object_t::data_pushFront(void * item){
+void object_t::data_pushFront(item_ptr_t item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   registerItems();
   {
@@ -180,10 +178,10 @@ void object_t::data_pushFront(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->emplace_back();
+        item->emplace_back();
         list_vector.emplace(list_vector.begin());
         list_vector.front().offset=item_offset;
-        list_vector.front().index=format_pointer(item)->size()-1;
+        list_vector.front().index=item->size()-1;
         return;
       }
       throw std::invalid_argument("Missing item [1]!");
@@ -192,7 +190,7 @@ void object_t::data_pushFront(void * item){
     }
   }
 }
-void object_t::data_pushBack(void * item){
+void object_t::data_pushBack(item_ptr_t item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   registerItems();
   {
@@ -200,10 +198,10 @@ void object_t::data_pushBack(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->emplace_back();
+        item->emplace_back();
         list_vector.emplace_back();
         list_vector.back().offset=item_offset;
-        list_vector.back().index=format_pointer(item)->size()-1;
+        list_vector.back().index=item->size()-1;
         return;
       }
       throw std::invalid_argument("Missing item [1]!");
@@ -212,7 +210,7 @@ void object_t::data_pushBack(void * item){
     }
   }
 }
-void object_t::data_clear(void * item){
+void object_t::data_clear(item_ptr_t item){
   std::unique_lock<ict::mutex::read_write::read_t> lock (get_object_mutex().read);
   registerItems();
   {
@@ -220,9 +218,9 @@ void object_t::data_clear(void * item){
     if (item) {
       object_t::item_offset_t item_offset=pointer2offset(this,item);
       if (object_struct.offset_name.count(item_offset)){
-        format_pointer(item)->clear();
         list_vector_t new_vector(list_vector);
         list_vector.clear();
+        item->clear();
         for (const item_list_t & i : new_vector) if (i.offset!=item_offset) {
           list_vector.emplace_back(i);
         }
