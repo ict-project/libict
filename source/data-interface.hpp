@@ -277,6 +277,7 @@ private:
         }
     };
 public:
+    typedef interface value_t;
     //! Iterator jednokierunkowy.
     class data_iterator:public iterator_template<interface*>{
     public:
@@ -481,11 +482,17 @@ public:
 };
 //===========================================
 class null_t: public interface{
+public:
+    typedef null_t value_t;
+    value_t & operator()(){
+        return(*this);
+    }
 };
 template<typename T> class basic: public interface{
 public:
     T value=0;
 public:
+    typedef T value_t;
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
         if (buffer.testOut(value)){
@@ -515,7 +522,7 @@ public:
     //! 
     //! @return Zmienna typu liczba.
     //! 
-    T & operator()(){
+    value_t & operator()(){
         return(value);
     }
 };
@@ -593,6 +600,7 @@ template<class T> class string: public interface{
 public:
     T value;
 public:
+    typedef T value_t;
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
         value.resize(buffer.getSize()/sizeof(value.back()));
@@ -623,7 +631,7 @@ public:
     //! 
     //! @return Zmienna typu string.
     //! 
-    T & operator()(){
+    value_t & operator()(){
         return(value);
     }
 };
@@ -685,14 +693,6 @@ public:
     virtual interface & data_getBack() {
         return(vector_t::back());
     }
-    //! 
-    //! @brief Udostępnia sam siebie.
-    //! 
-    //! @return Ten element.
-    //! 
-    array_t<T> & operator()(){
-        return(*this);
-    }
 };
 class object_t:public interface{
 public:
@@ -727,7 +727,7 @@ public:
             value.shrink_to_fit();
         }
         virtual interface & get_interface(const std::size_t & index){
-            return(value[index]);
+            return((interface &)(value[index]));
         }
     public:
         typedef typename vector_t::iterator iterator;
@@ -739,7 +739,7 @@ public:
         //! @return Element.
         //! 
         T & operator()(const std::size_t & index=0){
-            return(value[index]());
+            return(value[index]);
         }
         //Iterators:
         //begin Return iterator to beginning (public member function )
@@ -826,27 +826,21 @@ public:
     //! @param item Wskaźnik składnika obiektu.
     //! 
     void data_pushFront(item_ptr_t item);
+    #define ict_data_pushFront(object,item) object.data_pushFront(&(object.item));
     //! 
     //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na końcu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
     void data_pushBack(item_ptr_t item);
+    #define ict_data_pushBack(object,item) object.data_pushBack(&(object.item));
     //! 
     //! @brief Czyści wskazany składnik obiektu.
     //! 
     //! @param item Wskaźnik składnika obiektu.
     //! 
     void data_clear(item_ptr_t item);
-    //=================================
-    //! 
-    //! @brief Udostępnia sam siebie.
-    //! 
-    //! @return Ten element.
-    //! 
-    object_t & operator()(){
-        return(*this);
-    }
+    #define ict_data_clear(object,item) object.data_clear(&(object.item));
 };
 //===========================================
 template<class T> class info_pair:public object_t{
@@ -859,6 +853,7 @@ private:
       ict_data_registerItem(value);
     }
 };
+class info_child;
 template<class T> class info_array:public array_t<info_pair<T>>{};
 typedef  info_array<bool_t> info_bool_t;
 typedef  info_array<number_s_char_t> info_s_char_t;
@@ -875,7 +870,7 @@ typedef  info_array<number_float_t> info_float_t;
 typedef  info_array<number_double_t> info_double_t;
 typedef  info_array<number_l_double_t> info_l_double_t;
 typedef  info_array<string_string_t> info_string_t;
-typedef  info_array<info> info_children_t;
+typedef  array_t<info_child> info_children_t;
 //! Zwraca informacje o obiekcie.
 class info:public object_t{
 public:
@@ -913,6 +908,16 @@ private:
         ict_data_registerItem(info_l_double);
         ict_data_registerItem(info_string);
         ict_data_registerItem(info_children);
+    }
+};
+class info_child:public object_t{
+public:
+    item_t<string_string_t> name;
+    item_t<info> value;
+private:
+    void data_registerItems()const{
+      ict_data_registerItem(name);
+      ict_data_registerItem(value);
     }
 };
 //===========================================

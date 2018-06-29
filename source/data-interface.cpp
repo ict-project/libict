@@ -239,8 +239,34 @@ void object_t::data_clear(item_ptr_t item){
 REGISTER_TEST(data_interface,tc1){
   try{
     ict::data::info i;
-    i.data_pushBack(&(i.info_double));
-    i.data_pushBack(&(i.info_string));
+
+    ict_data_pushFront(i,info_double);
+    i.info_double().emplace_back();
+    ict_data_pushFront(i.info_double()[0],type);
+    ict_data_pushFront(i.info_double()[0],value);
+    i.info_double[0][0].type[0]()=5;
+    i.info_double[0][0].value[0]()=7.009;
+
+    ict_data_pushFront(i,info_string);
+    i.info_string().emplace_back();
+    ict_data_pushFront(i.info_string()[0],type);
+    ict_data_pushFront(i.info_string()[0],value);
+    i.info_string[0][0].type[0]()=6;
+    i.info_string[0][0].value[0]()="7.009";
+
+    ict_data_pushFront(i,info_children);
+    i.info_children().emplace_back();
+    ict_data_pushFront(i.info_children()[0],name);
+    ict_data_pushFront(i.info_children()[0],value);
+    ict_data_pushFront(i.info_children()[0].value(),info_u_int);
+    i.info_children[0][0].name[0]()="name";
+
+
+
+
+
+
+
 
   }catch(const std::exception & e){
     std::cerr<<"ERROR: "<<e.what()<<"!"<<std::endl;
