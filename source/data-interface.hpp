@@ -71,6 +71,30 @@ enum data_t{
     data_map=0x0020
 };
 //===========================================
+//! 
+//! @brief Sprawdza czy typ jest złożony.
+//! 
+//! @param type Typ.
+//! @return true - Typ złożony
+//! @return false - Typ prosty
+//! 
+bool complex_type(data_t type);
+//! 
+//! @brief Sprawdza czy typ jest prosty.
+//! 
+//! @param type Typ.
+//! @return true - Typ prosty
+//! @return false - Typ złożony.
+//! 
+bool simple_type(data_t type);
+//! 
+//! @brief Zwaca nazwę typu.
+//! 
+//! @param type Typ.
+//! @return Nazwa.
+//! 
+const std::string & type_name(data_t type);
+//===========================================
 //! Wzorzec obietów porównywalnych
 template <class T> class comparable {
 private:
@@ -105,9 +129,28 @@ public:
     }
 };
 //===========================================
+typedef bool bool_type;
+typedef signed char number_s_char_type;
+typedef signed short int number_ss_int_type;
+typedef signed int number_s_int_type;
+typedef signed long int number_sl_int_type;
+typedef signed long long int number_sll_int_type;
+typedef unsigned char number_u_char_type;
+typedef unsigned short int number_us_int_type;
+typedef unsigned int number_u_int_type;
+typedef unsigned long int number_ul_int_type;
+typedef unsigned long long int number_ull_int_type;
+typedef float number_float_type;
+typedef double number_double_type;
+typedef long double number_l_double_type;
+typedef std::string string_string_type;
+typedef std::wstring string_wstring_type;
+typedef ict::buffer::byte_vector_t string_bytes_type;
 class info;
+//===========================================
 //! Porównwalna wersja std::vector<std::string>
 class tags : public std::vector<std::string>,public comparable<tags>{
+private:
     int compare(const tags & rhs) const {
         if (size()<rhs.size()) return(-1);
         if (size()>rhs.size()) return(1);
@@ -117,6 +160,7 @@ class tags : public std::vector<std::string>,public comparable<tags>{
         }
         return(0);
     }
+public:
     //! 
     //! @brief Zwraca string połączonych za pomocą kropki ('.') wartosći std::string.
     //! 
@@ -125,13 +169,17 @@ class tags : public std::vector<std::string>,public comparable<tags>{
     std::string string() const {
         std::string out;
         for (std::size_t k=0;k<size();k++) {
-            if (!k) out+=".";
+            if (k) out+=".";
             out+=at(k);
         }
         return(out);
     }
 };
 //! Podstawowy interfejs danych.
+struct info_types{
+    const static number_u_int_type data_type=0x1;
+    const static number_u_int_type class_name=0x2;
+};
 class interface{
 private:
     //! Wzorzec iteratora jednokierunkowego.
@@ -183,9 +231,20 @@ private:
         //! 
         //! @return pointer Wskaźnik aktualnego obiektu.
         //! 
-        pointer ptr(){
+        pointer ptr() const {
             if (stack.empty()) throw std::range_error("No value [1]!");
             return(stack.top().ptr);
+        }
+        pointer operator->() const {
+            return(ptr());
+        }
+        //! 
+        //! @brief Zwraca rozmiar stosu iteratora. 
+        //! 
+        //! @return std::size_t Rozmiar stosu iteratora.
+        //! 
+        std::size_t level() const {
+            return(stack.size());
         }
         //! 
         //! @brief Zwraca aktualny krok w ramach aktualnego obiektu. 
@@ -197,13 +256,41 @@ private:
             return(stack.top().step>>0x1);
         }
         //! 
-        //! @brief Zwraca aktualnę fazę aktualnego kroku w ramach aktualnego obiektu.
+        //! @brief Zwraca liczbę elementów w ramach aktualnego obiektu.
         //! 
-        //! @return Aktualna faza aktualnego kroku w ramach aktualnego obiektu.
+        //! @return std::size_t Liczba elementów.
         //! 
-        bool phase() const {
+        std::size_t size() const {
             if (stack.empty()) throw std::range_error("No value [3]!");
-            return(stack.top().step&0x1);
+            return(stack.top().ptr->data_getSize());  
+        }
+        //! 
+        //! @brief Sprawdza, czy to pierwszy element w ramach aktualnego obiektu.
+        //! 
+        //! @return true Pierwszy element
+        //! @return false Inny elememnt.
+        //! 
+        bool first() const {
+            return(step()<=0);  
+        }
+        //! 
+        //! @brief Sprawdza, czy to ostatni element w ramach aktualnego obiektu.
+        //! 
+        //! @return true Ostatni element.
+        //! @return false Inny element.
+        //! 
+        bool last() const {
+            return(size()<=step());  
+        }
+        //! 
+        //! @brief Sprawdza, czy to jest środkowy element w ramach aktualnego obiektu.
+        //! 
+        //! @return true Środkowy element.
+        //! @return false Inny element.
+        //! 
+        bool middle() const {
+            if (first()||last()) return(false);
+            return(true);  
         }
         //! 
         //! @brief Get the Tags object
@@ -255,23 +342,27 @@ private:
         void go(){
             while(!stack.empty()){
                 stack_item_t<I> & item(stack.top());
-                std::size_t max=item.ptr->data_getSize();
-                max<<=0x1;
-                max++;
-                item.step++;
-                if (item.step<max){//Przekroczenie zakresu.
-                    pop();//Zdejmij element
-                } else {//W zakresie
-                    if (item.step&0x1){//Wejdź wyżej
-                        std::size_t s=item.step>>0x1;
-                        std::size_t m=item.ptr->data_getSize();
-                        std::size_t i=reverse_value?m-s:s;
-                        interface & next(item.ptr->data_getValue(i));
-                        push(&next,item.ptr->data_getTag(i));
-                        return;
-                    } else {//Pozostań w tym miejscu
-                        return;
+                data_t type=item.ptr->data_getType();
+                if (complex_type(type)){//Typy złożone
+                    std::size_t max=item.ptr->data_getSize();
+                    item.step++;//Inkrementacja kroku
+                    max<<=0x1;
+                    max++;
+                    if (item.step<max){//W zakresie
+                        if (item.step&0x1){//Wejdź wyżej
+                            std::size_t s=item.step>>0x1;
+                            std::size_t m=item.ptr->data_getSize();
+                            std::size_t i=reverse_value?m-s-1:s;
+                            push(&(item.ptr->data_getValue(i)),item.ptr->data_getTag(i));
+                            return;
+                        } else {//Pozostań w tym miejscu
+                            return;
+                        }
+                    } else {//Przekroczenie zakresu.
+                        pop();//Zdejmij element
                     }
+                } else {//Typy proste
+                    pop();//Zdejmij element
                 }
             }
         }
@@ -385,6 +476,43 @@ public:
         const static data_const_iterator i(true);
         return(i);
     };
+protected:
+    //! 
+    //! @brief Zapisuje w klasie info dane.
+    //! 
+    //! @param output Klasa info.
+    //! @param type Typ informacji.
+    //! @param value Wartość do zapisania.
+    //! 
+    static void data_setInfo(info & output,number_u_int_type type,const bool_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_s_char_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_ss_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_s_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_sl_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_sll_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_u_char_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_us_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_u_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_ul_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_ull_int_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_float_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_double_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const number_l_double_type & value);
+    static void data_setInfo(info & output,number_u_int_type type,const string_string_type & value);
+    //! 
+    //! @brief Tworzy podstawową informację o obiekcie.
+    //! 
+    //! @param output Informacja o obiekcie.
+    //! 
+    void data_getInfoMain(info & output) const;
+    //! 
+    //! @brief Tworzy informację o obiekcie - funkcja do nadpisania.
+    //! 
+    //! @param output Informacja o obiekcie.
+    //! @return Sukces lub porażka. 
+    //! 
+    virtual bool data_getInfo(info & output) const {}
+public:
     //====================
     //! 
     //! @brief Funkcja parsująca bufor binarny do obiektu.
@@ -417,9 +545,10 @@ public:
     //!     
     virtual int data_validate(std::string & error) const {return(0);}
     //! 
-    //! @brief Resetowanie obiektu.
+    //! @brief Resetowanie obiektu. Ewentualnie jednego element obiektu.
+    //! @param tag Wskazanie tagu elementu do resetowania (gdy pusty cały obiekt jest resetowany).
     //! 
-    virtual void data_clear(){}
+    virtual void data_clear(const std::string & tag=""){}
     //! 
     //! @brief Dodaje element na początku obiektu.
     //! 
@@ -452,7 +581,7 @@ public:
     //! @param index Indeks elementu.
     //! @return Tag elementu.
     //! 
-    virtual std::string data_getTag(const std::size_t & index) const {return("");}
+    virtual std::string data_getTag(const std::size_t & index) const;
     //! 
     //! @brief Zwraca interfejs elementu o indeksie index.
     //! 
@@ -460,25 +589,21 @@ public:
     //! @return interface& 
     //! 
     virtual interface & data_getValue(const std::size_t & index) {return(*this);}
+    virtual const interface & data_getValue(const std::size_t & index) const {return(*this);}
     //! 
     //! @brief Zwraca interfejs pierwszego elementu.
     //! 
     //! @return interface& 
     //!
     virtual interface & data_getFront() {return(data_getValue(0));}
+    virtual const interface & data_getFront() const {return(data_getValue(0));}
     //! 
     //! @brief Zwraca interfejs ostatniego elementu.
     //! 
     //! @return interface& 
     //!
     virtual interface & data_getBack() {return(data_getValue(data_getSize()-1));}
-    //! 
-    //! @brief Tworzy informację o obiekcie.
-    //! 
-    //! @param output Informacja o obiekcie.
-    //! @return Sukces lub porażka. 
-    //! 
-    virtual bool data_getInfo(info & output) const {}
+    virtual const interface & data_getBack() const {return(data_getValue(data_getSize()-1));}
 };
 //===========================================
 class null_t: public interface{
@@ -514,7 +639,7 @@ public:
         return(sizeof(T));
     }
     //! Patrz: interface::data_clear()
-    void data_clear(){
+    void data_clear(const std::string & tag=""){
         value=0;
     }
     //! 
@@ -526,72 +651,72 @@ public:
         return(value);
     }
 };
-class bool_t:public basic<bool>{
+class bool_t:public basic<bool_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_bool);}
 };
-class number_s_char_t:public basic<signed char>{
+class number_s_char_t:public basic<number_s_char_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_char);}
 };
-class number_ss_int_t:public basic<signed short int>{
+class number_ss_int_t:public basic<number_ss_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ss_int);}
 };
-class number_s_int_t:public basic<signed int>{
+class number_s_int_t:public basic<number_s_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_int);}
 };
-class number_sl_int_t:public basic<signed long int>{
+class number_sl_int_t:public basic<number_sl_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sl_int);}
 };
-class number_sll_int_t:public basic<signed long long int>{
+class number_sll_int_t:public basic<number_sll_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sll_int);}
 };
-class number_u_char_t:public basic<unsigned char>{
+class number_u_char_t:public basic<number_u_char_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_u_char);}
 };
-class number_us_int_t:public basic<unsigned short int>{
+class number_us_int_t:public basic<number_us_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
-class number_u_int_t:public basic<unsigned int>{
+class number_u_int_t:public basic<number_u_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
-class number_ul_int_t:public basic<unsigned long int>{
+class number_ul_int_t:public basic<number_ul_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ul_int);}
 };
-class number_ull_int_t:public basic<unsigned long long int>{
+class number_ull_int_t:public basic<number_ull_int_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ull_int);}
 };
-class number_float_t:public basic<float>{
+class number_float_t:public basic<number_float_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_float);}
 };
-class number_double_t:public basic<double>{
+class number_double_t:public basic<number_double_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_double);}
 };
-class number_l_double_t:public basic<long double>{
+class number_l_double_t:public basic<number_l_double_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_l_double);}
@@ -623,7 +748,7 @@ public:
         return(value.size());
     }
     //! Patrz: interface::data_clear()
-    void data_clear(){
+    void data_clear(const std::string & tag=""){
         value.clear();
     }
     //! 
@@ -635,17 +760,17 @@ public:
         return(value);
     }
 };
-class string_string_t:public string<std::string>{
+class string_string_t:public string<string_string_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_string);}
 };
-class string_wstring_t:public string<std::wstring>{
+class string_wstring_t:public string<string_wstring_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_wstring);}
 };
-class string_bytes_t:public string<ict::buffer::byte_vector_t>{
+class string_bytes_t:public string<string_bytes_type>{
 public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_bytes);}
@@ -660,7 +785,7 @@ private:
     typedef std::vector<T> vector_t;
 public:
     //! Patrz: interface::data_clear()
-    void data_clear(){
+    void data_clear(const std::string & tag=""){
         vector_t::clear();
     }
     //! Patrz: interface::data_pushFront()
@@ -684,6 +809,9 @@ public:
     //! Patrz: interface::data_getValue()
     interface & data_getValue(const std::size_t & index) {
         return(vector_t::operator[](index));
+    }
+    const interface & data_getValue(const std::size_t & index) const {
+        return(vector_t::at(index));
     }
     //! Patrz: interface::data_getFront()
     virtual interface & data_getFront() {
@@ -806,7 +934,7 @@ protected:
     #define ict_data_registerItem(item) data_registerItem(#item,&item)
 public:
     //! Patrz: interface::data_clear()
-    void data_clear();
+    void data_clear(const std::string & tag="");
     //! Patrz: interface::data_pushFront()
     bool data_pushFront(const std::string & tag="");
     //! Patrz: interface::data_pushBack()
@@ -819,6 +947,7 @@ public:
     std::string data_getTag(const std::size_t & index) const;
     //! Patrz: ict::data:interface
     interface & data_getValue(const std::size_t & index);
+    const interface & data_getValue(const std::size_t & index) const;
     //=================================
     //! 
     //! @brief Dodaje element na końcu wskazanego składnika obiektu. Podczas iteracji składnik jest iterowany na początku.
