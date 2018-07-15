@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <stack>
 #include <typeinfo>
+#include <type_traits>
 //============================================
 namespace ict { namespace data {
 //===========================================
@@ -605,15 +606,12 @@ public:
     virtual interface & data_getBack() {return(data_getValue(data_getSize()-1));}
     virtual const interface & data_getBack() const {return(data_getValue(data_getSize()-1));}
 };
-//===========================================
-class null_t: public interface{
-public:
-    typedef null_t value_t;
-    value_t & operator()(){
-        return(*this);
-    }
+class simple_interface: public interface{
 };
-template<typename T> class basic: public interface{
+class complex_interface: public interface{
+};
+//===========================================
+template<typename T> class basic: public simple_interface{
 public:
     T value=0;
 public:
@@ -650,6 +648,11 @@ public:
     value_t & operator()(){
         return(value);
     }
+};
+class null_t:public basic<bool_type>{
+public:
+    //! Patrz: interface::data_getType()
+    data_t data_getType() const {return(data_null);}
 };
 class bool_t:public basic<bool_type>{
 public:
@@ -721,7 +724,7 @@ public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_l_double);}
 };
-template<class T> class string: public interface{
+template<class T> class string: public simple_interface{
 public:
     T value;
 public:
@@ -780,7 +783,7 @@ public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_stream);}
 };
-template<class T> class array_t:public std::vector<T>,public interface{
+template<class T> class array_t:public std::vector<T>,public complex_interface{
 private:
     typedef std::vector<T> vector_t;
 public:
@@ -822,7 +825,7 @@ public:
         return(vector_t::back());
     }
 };
-class object_t:public interface{
+class object_t:public complex_interface{
 public:
     class item_interface_t {
         friend class object_t;
@@ -842,10 +845,11 @@ public:
         //empty Test whether vector is empty (public member function )
         virtual bool empty()const noexcept=0;
     };
-    template<class T> class item_t: public item_interface_t {
-    private:
+    template<class T> class item_template_t: public item_interface_t {
+    protected:
         typedef std::vector<T> vector_t;
         vector_t value;
+
         void emplace_back(){
             value.emplace_back();
             value.shrink_to_fit();
@@ -860,15 +864,6 @@ public:
     public:
         typedef typename vector_t::iterator iterator;
         typedef typename vector_t::const_iterator const_iterator;
-        //! 
-        //! @brief Udostępnia element o podanym indeksie.
-        //! 
-        //! @param index Indeks elementu.
-        //! @return Element.
-        //! 
-        T & operator()(const std::size_t & index=0){
-            return(value[index]);
-        }
         //Iterators:
         //begin Return iterator to beginning (public member function )
         iterator begin()noexcept{return(value.begin());}
@@ -907,6 +902,34 @@ public:
         //back Access last element (public member function )
         T & back(){return(value.back());}
         //data Access data (public member function )
+    };
+    template<class T,class Enable = void> class item_t {
+    };
+    template<class T>
+    class item_t<T,typename std::enable_if<std::is_base_of<complex_interface,T>::value>::type>: public item_template_t<T> {
+    public:
+        //! 
+        //! @brief Udostępnia element o podanym indeksie.
+        //! 
+        //! @param index Indeks elementu.
+        //! @return Element.
+        //! 
+        T & operator()(const std::size_t & index=0){
+            return(item_template_t<T>::value[index]);
+        }
+    };
+    template<class T>
+    class item_t<T,typename std::enable_if<!std::is_base_of<complex_interface,T>::value>::type>: public item_template_t<T> {
+    public:
+        //! 
+        //! @brief Udostępnia element o podanym indeksie.
+        //! 
+        //! @param index Indeks elementu.
+        //! @return Element.
+        //! 
+        typename T::value_t & operator()(const std::size_t & index=0){
+            return(item_template_t<T>::value[index].value);
+        }
     };
     typedef std::size_t item_offset_t;
     typedef std::size_t item_index_t;

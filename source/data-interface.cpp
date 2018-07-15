@@ -106,9 +106,9 @@ void interface::data_setInfo(info & output,number_u_int_type type,const p##t##_t
     {\
       auto & back(output.info_##t().back());\
       back.data_pushBack("type");\
-      back.type()()=type;\
+      back.type()=type;\
       back.data_pushBack("value");\
-      back.value()()=value;\
+      back.value()=value;\
     }\
 }
 setInfo_m(,bool)
@@ -363,8 +363,8 @@ void test_info_data(ict::data::info & i){
     i.info_bool().emplace_back();
     i.info_bool()[0].data_pushBack("type");
     i.info_bool()[0].data_pushBack("value");
-    i.info_bool()[0].type()()=1;
-    i.info_bool()[0].value()()=false;
+    i.info_bool()[0].type()=1;
+    i.info_bool()[0].value()=false;
 
     ict_data_pushFront(i,info_string);
     i.info_string().emplace_back();
