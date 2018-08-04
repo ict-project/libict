@@ -48,6 +48,7 @@ typedef std::vector<byte_t> byte_vector_t;
 //===========================================
 class interface {
 private:
+    typedef uint32_t array_size_t;
     template<typename T> bool testInput(const T & input){
         return(getFreeSpace()<sizeof(input)); 
     }
@@ -55,10 +56,10 @@ private:
         return(getSize()<sizeof(output)); 
     }
     template<class T> bool testInputArray(const T & input){
-        return(getFreeSpace()<(sizeof(input.back())*input.size())); 
+        return(getFreeSpace()<(sizeof(input.back())*input.size()+sizeof(array_size_t))); 
     }
     template<class T> bool testOutputArray(const T & output){
-        return(getSize()<(sizeof(output.back())*output.size()));
+        return(getSize()<(sizeof(output.back())*output.size()+sizeof(array_size_t)));
     }
     template<typename T> void dataIn(const T & input){
         const byte_t* ptr=(byte_t*)(&input);
@@ -71,12 +72,16 @@ private:
         for (std::size_t k=0;k<sizeof(output);k++) byteOut(ptr[k]);
     }
     template<class T> void dataInArray(const T & input){
+        array_size_t size=input.size();
         if (testInputArray(input)) throw std::range_error("Input to large for ict::buffer::interface [2]!");
-        for (std::size_t k=0;k<input.size();k++) dataIn(input[k]);
+        dataIn(size);
+        for (std::size_t k=0;k<size;k++) dataIn(input[k]);
     }
     template<class T> void dataOutArray(T & output){
+        array_size_t size;
         if (testOutputArray(output)) throw std::range_error("Output to small for ict::buffer::interface [2]!");
-        for (std::size_t k=0;k<output.size();k++) dataOut(output[k]);
+        dataOut(size);
+        for (std::size_t k=0;k<size;k++) dataOut(output[k]);
     }
     virtual void byteIn(const byte_t & byte)=0;
     virtual void byteOut(byte_t & byte)=0;

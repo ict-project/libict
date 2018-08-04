@@ -731,7 +731,6 @@ public:
     typedef T value_t;
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
-        value.resize(buffer.getSize()/sizeof(value.back()));
         if (buffer.testOut(value)){
             buffer>>value;
             return(0);
