@@ -45,11 +45,18 @@ namespace ict { namespace buffer {
 //============================================
 const std::size_t max_size(0xffffffffffffffff);
 void basic::byteIn(const byte_t & byte){
-    q.push(byte);
+    q.push_back(byte);
 }
 void basic::byteOut(byte_t & byte){
     byte=q.front();
-    q.pop();
+    q.pop_front();
+}
+basic::interface::array_size_t basic::getArraySize(){
+  basic::interface::array_size_t size=0;
+  byte_t* ptr=(byte_t*)(&size);
+  if (q.size()<sizeof(size)) return(size);
+  for (std::size_t k=0;k<sizeof(size);k++) ptr[k]=q[k];
+  return(size);
 }
 basic::basic():max(max_size){}
 basic::basic(const std::size_t & maxSize):max((maxSize<max_size)?maxSize:max_size){}

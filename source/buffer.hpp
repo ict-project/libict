@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _BUFFER_HEADER
 //============================================
 #include <vector>
-#include <queue>
+#include <deque>
 #include <string>
 #include <stdexcept>
 //============================================
@@ -47,8 +47,9 @@ typedef unsigned char byte_t;
 typedef std::vector<byte_t> byte_vector_t;
 //===========================================
 class interface {
-private:
+protected:
     typedef uint32_t array_size_t;
+private:
     template<typename T> bool testInput(const T & input){
         return(getFreeSpace()<sizeof(input)); 
     }
@@ -59,7 +60,7 @@ private:
         return(getFreeSpace()<(sizeof(input.back())*input.size()+sizeof(array_size_t))); 
     }
     template<class T> bool testOutputArray(const T & output){
-        return(getSize()<(sizeof(output.back())*output.size()+sizeof(array_size_t)));
+        return(getSize()<(sizeof(output.back())*getArraySize()+sizeof(array_size_t)));
     }
     template<typename T> void dataIn(const T & input){
         const byte_t* ptr=(byte_t*)(&input);
@@ -85,6 +86,7 @@ private:
     }
     virtual void byteIn(const byte_t & byte)=0;
     virtual void byteOut(byte_t & byte)=0;
+    virtual array_size_t getArraySize()=0;
 public:
     virtual std::size_t getMaxSize() const=0;
     virtual std::size_t getFreeSpace() const=0;
@@ -166,9 +168,10 @@ public:
 class basic:public interface {
 private:
     std::size_t max;
-    std::queue<byte_t> q;
+    std::deque<byte_t> q;
     void byteIn(const byte_t & byte);
     void byteOut(byte_t & byte);
+    interface::array_size_t getArraySize();
 public:
     basic();
     basic(const std::size_t & maxSize);
