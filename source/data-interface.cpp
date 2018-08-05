@@ -99,14 +99,14 @@ const std::string & type_name(data_t type){
 //============================================
 #define setInfo_m(p,t) \
 void interface::data_setInfo(info & output,number_u_int_type type,const p##t##_type & value) { \
-    if (!output.info_##t.size()) output.data_pushBack("info_" #t); \
-    output.info_##t().emplace_back(); \
+    if (!output.info_params.size()) output.data_pushBack("info_params"); \
+    output.info_params().emplace_back(); \
     {\
-      auto & back(output.info_##t().back());\
+      auto & back(output.info_params().back());\
       back.data_pushBack("type");\
       back.type()=type;\
-      back.data_pushBack("value");\
-      back.value()=value;\
+      back.data_pushBack("info_" #t);\
+      back.info_##t()=value;\
     }\
 }
 setInfo_m(,bool)
@@ -350,70 +350,66 @@ void object_object_t::data_clear(item_ptr_t item){
 //===========================================
 #ifdef ENABLE_TESTING
 void test_info_data(ict::data::info & i){
-    ict_data_pushFront(i,info_double);
-    i.info_double().emplace_back();
-    ict_data_pushFront(i.info_double()[0],type);
-    ict_data_pushFront(i.info_double()[0],value);
-    i.info_double[0][0].type[0]()=5;
-    i.info_double[0][0].value[0]()=7.009;
-
-    i.data_pushFront("info_bool");
-    i.info_bool().emplace_back();
-    i.info_bool()[0].data_pushBack("type");
-    i.info_bool()[0].data_pushBack("value");
-    i.info_bool()[0].type()=1;
-    i.info_bool()[0].value()=false;
-
-    ict_data_pushFront(i,info_string);
-    i.info_string().emplace_back();
-    ict_data_pushBack(i.info_string()[0],type);
-    ict_data_pushBack(i.info_string()[0],value);
-    i.info_string[0][0].type[0]()=6;
-    i.info_string[0][0].value[0]()="7.009";
-
-    ict_data_pushFront(i,info_children);
-    i.info_children().emplace_back();
-    ict_data_pushFront(i.info_children()[0],name);
-    ict_data_pushFront(i.info_children()[0],value);
-    ict_data_pushFront(i.info_children()[0].value(),info_u_int);
-    i.info_children[0][0].name[0]()="name";
+    {
+      double value=7.009;
+      ict::data::interface::data_setInfo(i,5,value);
+    }
+    {
+      bool value=false;
+      ict::data::interface::data_setInfo(i,1,value);
+    }
+    {
+      std::string value="7.009";
+      ict::data::interface::data_setInfo(i,6,value);
+    }
+    {
+      unsigned int value=975;
+      ict_data_pushFront(i,info_children);
+      i.info_children().emplace_back();
+      ict_data_pushFront(i.info_children()[0],name);
+      i.info_children[0][0].name[0]()="name";
+      ict_data_pushFront(i.info_children()[0],value);
+      ict::data::interface::data_setInfo(i.info_children()[0].value(),23,value);
+    }
 }
 const std::vector<ict::data::data_t> types_order={
-  ict::data::data_object_object,//1,0,false,0
-    ict::data::data_array_vector,//2,0,false,1
-      ict::data::data_object_object,//3,0,false,2
-        ict::data::data_object_object,//4,0,false,3
-          ict::data::data_array_vector,//5,0,false,4
-        ict::data::data_object_object,//4,1,false,5
-      ict::data::data_object_object,//3,1,false,6
-        ict::data::data_string_string,//4,0,false,7
-      ict::data::data_object_object,//3,2,false,8
-    ict::data::data_array_vector,//2,1,false,9
-  ict::data::data_object_object,//1,1,false,10
-    ict::data::data_array_vector,//2,0,false,11
-      ict::data::data_object_object,//3,0,false,12
-        ict::data::data_number_us_int,//4,0,false,13
-      ict::data::data_object_object,//3,1,false,14
-        ict::data::data_string_string,//4,0,false,15
-      ict::data::data_object_object,//3,2,false,16
-    ict::data::data_array_vector,//2,1,false,17
-  ict::data::data_object_object,//1,2,false,18
-    ict::data::data_array_vector,//2,0,false,19
-      ict::data::data_object_object,//3,0,false,20
-        ict::data::data_number_us_int,//4,0,false,21
-      ict::data::data_object_object,//3,1,false,22
-        ict::data::data_bool,//4,0,false,23
-      ict::data::data_object_object,//3,2,false,24
-    ict::data::data_array_vector,//2,1,false,25
-  ict::data::data_object_object,//1,3,false,26
-    ict::data::data_array_vector,//2,0,false,27
-      ict::data::data_object_object,//3,0,false,28
-        ict::data::data_number_double,//4,0,false,29
-      ict::data::data_object_object,//3,1,false,30
-        ict::data::data_number_us_int,//4,0,false,31
-      ict::data::data_object_object,//3,2,false,32
-    ict::data::data_array_vector,//2,1,false,33
-  ict::data::data_object_object,//1,4,false,34
+  ict::data::data_object_object,//1,0,
+    ict::data::data_array_vector,//2,0,info_children
+      ict::data::data_object_object,//3,0,info_children.0
+        ict::data::data_object_object,//4,0,info_children.0.value
+          ict::data::data_array_vector,//5,0,info_children.0.value.info_params
+            ict::data::data_object_object,//6,0,info_children.0.value.info_params.0
+              ict::data::data_number_us_int,//7,0,info_children.0.value.info_params.0.type
+            ict::data::data_object_object,//6,1,info_children.0.value.info_params.0
+              ict::data::data_number_us_int,//7,0,info_children.0.value.info_params.0.info_u_int
+            ict::data::data_object_object,//6,2,info_children.0.value.info_params.0
+          ict::data::data_array_vector,//5,1,info_children.0.value.info_params
+        ict::data::data_object_object,//4,1,info_children.0.value
+      ict::data::data_object_object,//3,1,info_children.0
+        ict::data::data_string_string,//4,0,info_children.0.name
+      ict::data::data_object_object,//3,2,info_children.0
+    ict::data::data_array_vector,//2,1,info_children
+  ict::data::data_object_object,//1,1,
+    ict::data::data_array_vector,//2,0,info_params
+      ict::data::data_object_object,//3,0,info_params.0
+        ict::data::data_number_us_int,//4,0,info_params.0.type
+      ict::data::data_object_object,//3,1,info_params.0
+        ict::data::data_number_double,//4,0,info_params.0.info_double
+      ict::data::data_object_object,//3,2,info_params.0
+    ict::data::data_array_vector,//2,1,info_params
+      ict::data::data_object_object,//3,0,info_params.1
+        ict::data::data_number_us_int,//4,0,info_params.1.type
+      ict::data::data_object_object,//3,1,info_params.1
+        ict::data::data_bool,//4,0,info_params.1.info_bool
+      ict::data::data_object_object,//3,2,info_params.1
+    ict::data::data_array_vector,//2,2,info_params
+      ict::data::data_object_object,//3,0,info_params.2
+        ict::data::data_number_us_int,//4,0,info_params.2.type
+      ict::data::data_object_object,//3,1,info_params.2
+        ict::data::data_string_string,//4,0,info_params.2.info_string
+      ict::data::data_object_object,//3,2,info_params.2
+    ict::data::data_array_vector,//2,3,info_params
+  ict::data::data_object_object//1,2,
 };
 REGISTER_TEST(data_interface,tc1){
   try{
@@ -537,8 +533,8 @@ REGISTER_TEST(data_interface,tc7){
       std::cout<<type_name(it->data_getType())<<","<<it.level()<<","<<it.step()<<","<<it.getTags().string()<<std::endl;
       k++;
     }
-    if (k!=25){
-      std::cerr<<"ERROR: k!=25 ("<<k<<"!="<<25<<")!"<<std::endl;
+    if (k!=21){
+      std::cerr<<"ERROR: k!=21 ("<<k<<"!="<<21<<")!"<<std::endl;
       return(1);
     }
    }catch(const std::exception & e){
@@ -557,8 +553,8 @@ REGISTER_TEST(data_interface,tc8){
       std::cout<<type_name(it->data_getType())<<","<<it.level()<<","<<it.step()<<","<<it.getTags().string()<<std::endl;
       k++;
     }
-    if (k!=25){
-      std::cerr<<"ERROR: k!=25 ("<<k<<"!="<<25<<")!"<<std::endl;
+    if (k!=21){
+      std::cerr<<"ERROR: k!=21 ("<<k<<"!="<<21<<")!"<<std::endl;
       return(1);
     }
    }catch(const std::exception & e){
@@ -581,8 +577,8 @@ REGISTER_TEST(data_interface,tc9){
       std::cout<<type_name(it->data_getType())<<","<<it.level()<<","<<it.step()<<","<<it.getTags().string()<<std::endl;
       k++;
     }
-    if (k!=25){
-      std::cerr<<"ERROR: k!=25 ("<<k<<"!="<<25<<")!"<<std::endl;
+    if (k!=21){
+      std::cerr<<"ERROR: k!=21 ("<<k<<"!="<<21<<")!"<<std::endl;
       return(1);
     }
    }catch(const std::exception & e){
