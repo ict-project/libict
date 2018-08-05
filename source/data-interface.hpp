@@ -781,7 +781,7 @@ public:
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_stream);}
 };
-template<class T> class array_t:public std::vector<T>,public complex_interface{
+template<class T> class array_vector_t:public std::vector<T>,public complex_interface{
 private:
     typedef std::vector<T> vector_t;
 public:
@@ -823,10 +823,10 @@ public:
         return(vector_t::back());
     }
 };
-class object_t:public complex_interface{
+class object_object_t:public complex_interface{
 public:
     class item_interface_t {
-        friend class object_t;
+        friend class object_object_t;
     private:
         virtual void emplace_back()=0;
         virtual void clear()=0;
@@ -993,7 +993,7 @@ public:
     #define ict_data_clear(object,item) object.data_clear(&(object.item));
 };
 //===========================================
-template<class T> class info_pair:public object_t{
+template<class T> class info_pair:public object_object_t{
 public:
     item_t<ict::data::number_u_int_t> type;
     item_t<T> value;
@@ -1004,7 +1004,7 @@ private:
     }
 };
 class info_child;
-template<class T> class info_array:public array_t<info_pair<T>>{};
+template<class T> class info_array:public array_vector_t<info_pair<T>>{};
 typedef  info_array<bool_t> info_bool_t;
 typedef  info_array<number_s_char_t> info_s_char_t;
 typedef  info_array<number_ss_int_t> info_ss_int_t;
@@ -1020,9 +1020,9 @@ typedef  info_array<number_float_t> info_float_t;
 typedef  info_array<number_double_t> info_double_t;
 typedef  info_array<number_l_double_t> info_l_double_t;
 typedef  info_array<string_string_t> info_string_t;
-typedef  array_t<info_child> info_children_t;
+typedef  array_vector_t<info_child> info_children_t;
 //! Zwraca informacje o obiekcie.
-class info:public object_t{
+class info:public object_object_t{
 public:
     item_t<info_bool_t> info_bool;
     item_t<info_s_char_t> info_s_char;
@@ -1060,7 +1060,7 @@ private:
         ict_data_registerItem(info_children);
     }
 };
-class info_child:public object_t{
+class info_child:public object_object_t{
 public:
     item_t<string_string_t> name;
     item_t<info> value;
