@@ -56,9 +56,8 @@ struct object_struct_t {
 //============================================
 bool complex_type(data_t type){
     switch(type){
-        case data_object:
-        case data_array:
-        case data_map:
+        case data_object_object:
+        case data_array_vector:
             return(true);
         default:break;
     }
@@ -90,9 +89,8 @@ const std::string & type_name(data_t type){
     map_item(data_string_wstring),
     map_item(data_string_bytes),
     map_item(data_string_stream),
-    map_item(data_object),
-    map_item(data_array),
-    map_item(data_map)
+    map_item(data_object_object),
+    map_item(data_array_vector)
     #undef map_item 
   };
   if (map.count(type)) return(map.at(type));
@@ -381,41 +379,41 @@ void test_info_data(ict::data::info & i){
     i.info_children[0][0].name[0]()="name";
 }
 const std::vector<ict::data::data_t> types_order={
-  ict::data::data_object,//1,0,false,0
-    ict::data::data_array,//2,0,false,1
-      ict::data::data_object,//3,0,false,2
-        ict::data::data_object,//4,0,false,3
-          ict::data::data_array,//5,0,false,4
-        ict::data::data_object,//4,1,false,5
-      ict::data::data_object,//3,1,false,6
+  ict::data::data_object_object,//1,0,false,0
+    ict::data::data_array_vector,//2,0,false,1
+      ict::data::data_object_object,//3,0,false,2
+        ict::data::data_object_object,//4,0,false,3
+          ict::data::data_array_vector,//5,0,false,4
+        ict::data::data_object_object,//4,1,false,5
+      ict::data::data_object_object,//3,1,false,6
         ict::data::data_string_string,//4,0,false,7
-      ict::data::data_object,//3,2,false,8
-    ict::data::data_array,//2,1,false,9
-  ict::data::data_object,//1,1,false,10
-    ict::data::data_array,//2,0,false,11
-      ict::data::data_object,//3,0,false,12
+      ict::data::data_object_object,//3,2,false,8
+    ict::data::data_array_vector,//2,1,false,9
+  ict::data::data_object_object,//1,1,false,10
+    ict::data::data_array_vector,//2,0,false,11
+      ict::data::data_object_object,//3,0,false,12
         ict::data::data_number_us_int,//4,0,false,13
-      ict::data::data_object,//3,1,false,14
+      ict::data::data_object_object,//3,1,false,14
         ict::data::data_string_string,//4,0,false,15
-      ict::data::data_object,//3,2,false,16
-    ict::data::data_array,//2,1,false,17
-  ict::data::data_object,//1,2,false,18
-    ict::data::data_array,//2,0,false,19
-      ict::data::data_object,//3,0,false,20
+      ict::data::data_object_object,//3,2,false,16
+    ict::data::data_array_vector,//2,1,false,17
+  ict::data::data_object_object,//1,2,false,18
+    ict::data::data_array_vector,//2,0,false,19
+      ict::data::data_object_object,//3,0,false,20
         ict::data::data_number_us_int,//4,0,false,21
-      ict::data::data_object,//3,1,false,22
+      ict::data::data_object_object,//3,1,false,22
         ict::data::data_bool,//4,0,false,23
-      ict::data::data_object,//3,2,false,24
-    ict::data::data_array,//2,1,false,25
-  ict::data::data_object,//1,3,false,26
-    ict::data::data_array,//2,0,false,27
-      ict::data::data_object,//3,0,false,28
+      ict::data::data_object_object,//3,2,false,24
+    ict::data::data_array_vector,//2,1,false,25
+  ict::data::data_object_object,//1,3,false,26
+    ict::data::data_array_vector,//2,0,false,27
+      ict::data::data_object_object,//3,0,false,28
         ict::data::data_number_double,//4,0,false,29
-      ict::data::data_object,//3,1,false,30
+      ict::data::data_object_object,//3,1,false,30
         ict::data::data_number_us_int,//4,0,false,31
-      ict::data::data_object,//3,2,false,32
-    ict::data::data_array,//2,1,false,33
-  ict::data::data_object,//1,4,false,34
+      ict::data::data_object_object,//3,2,false,32
+    ict::data::data_array_vector,//2,1,false,33
+  ict::data::data_object_object,//1,4,false,34
 };
 REGISTER_TEST(data_interface,tc1){
   try{

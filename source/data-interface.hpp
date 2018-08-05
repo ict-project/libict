@@ -67,9 +67,8 @@ enum data_t{
     data_string_wstring=0x8000+sizeof(wchar_t),// std::wstring
     data_string_bytes=0x8000,// std::vector<>
     data_string_stream=0x0004,
-    data_object=0x0008,
-    data_array=0x0010,
-    data_map=0x0020
+    data_object_object=0x0008,
+    data_array_vector=0x0010
 };
 //===========================================
 //! 
@@ -802,7 +801,7 @@ public:
     }
     //! Patrz: interface::data_getType()
     data_t data_getType() const {
-        return(data_array);
+        return(data_array_vector);
     }
     //! Patrz: interface::data_getSize()
     std::size_t data_getSize() const {
@@ -962,7 +961,7 @@ public:
     //! Patrz: interface::data_pushBack()
     bool data_pushBack(const std::string & tag="");
     //! Patrz: ict::data:interface
-    data_t data_getType() const {return(data_object);}
+    data_t data_getType() const {return(data_object_object);}
     //! Patrz: ict::data:interface
     std::size_t data_getSize() const {return(list_vector.size());}
     //! Patrz: ict::data:interface
