@@ -618,19 +618,19 @@ public:
     typedef T value_t;
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
-        if (buffer.testOut(value)){
+        //if (buffer.testOut(value)){
             buffer>>value;
             return(0);
-        }
-        return(1);
+        //}
+        //return(1);
     }
     //! Patrz: interface::data_serialize()
     int data_serialize(ict::buffer::interface & buffer) const {
-        if (buffer.testIn(value)){
+        //if (buffer.testIn(value)){
             buffer<<value;
             return(0);
-        }
-        return(1);
+        //}
+        //return(1);
     }
     //! Patrz: interface::data_getSize()
     std::size_t data_getSize() const {
@@ -731,19 +731,19 @@ public:
     typedef T value_t;
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
-        if (buffer.testOut(value)){
+        //if (buffer.testOut(value)){
             buffer>>value;
             return(0);
-        }
-        return(1);
+        //}
+        //return(1);
     }
     //! Patrz: interface::data_serialize()
     int data_serialize(ict::buffer::interface & buffer) const {
-        if (buffer.testIn(value)){
+        //if (buffer.testIn(value)){
             buffer<<value;
             return(0);
-        }
-        return(1);
+        //}
+        //return(1);
     }
     //! Patrz: interface::data_getSize()
     std::size_t data_getSize() const {
