@@ -46,29 +46,87 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //===========================================
+//! Typ danych JSON
+enum json_t{
+    json_null=0x1<<((2*8)-4),
+    json_bool=0x2<<((2*8)-4),
+    json_number=0x3<<((2*8)-4),
+    json_string=0x4<<((2*8)-4),
+    json_object=0x5<<((2*8)-4),
+    json_array=0x6<<((2*8)-4),
+    //=======================
+    json__mask=0xf<<((2*8)-4),
+};
+//! Typ danych C
+enum ctype_t{
+    ctype_sint=0x1<<((2*8)-4-4),
+    ctype_uint=0x2<<((2*8)-4-4),
+    ctype_float=0x3<<((2*8)-4-4),
+    ctype_string=0x4<<((2*8)-4-4),
+    ctype_complex=0x5<<((2*8)-4-4),
+    //=======================
+    ctype__mask=0xf<<((2*8)-4-4),
+};
+//! Typ danych złożonych (np. kontenerów)
+enum complex_t{
+    complex_object=0x1,
+    complex_array=0x2,
+    complex_deque=0x3,
+    complex_forward_list=0x4,
+    complex_list=0x5,
+    complex_map=0x6,
+    complex_multimap=0x7,
+    complex_queue=0x8,
+    complex_priority_queue=0x9,
+    complex_set=0xa,
+    complex_multiset=0xb,
+    complex_stack=0xc,
+    complex_unordered_map=0xd,
+    complex_unordered_multimap=0xe,
+    complex_unordered_set=0xf,
+    complex_unordered_multiset=0x10,
+    complex_vector=0x11,
+    //=======================
+    complex__mask=0xff,
+};
 //! Typy danych
 enum data_t{
-    data_null=0x0001,// null
-    data_bool=0x0002,// bool
-    data_number_s_char=0x1000+sizeof(signed char),// signed char
-    data_number_ss_int=0x1000+sizeof(signed short int),// signed short int
-    data_number_s_int=0x1000+sizeof(signed int),// signed int
-    data_number_sl_int=0x1000+sizeof(signed long int),// signed long int
-    data_number_sll_int=0x1000+sizeof(signed long long int),// signed long long int
-    data_number_u_char=0x2000+sizeof(unsigned char),// unsigned char
-    data_number_us_int=0x2000+sizeof(unsigned short int),// unsigned short int
-    data_number_u_int=0x2000+sizeof(unsigned int),// unsigned int
-    data_number_ul_int=0x2000+sizeof(unsigned long int),// unsigned long int
-    data_number_ull_int=0x2000+sizeof(unsigned long long int),// unsigned long long int
-    data_number_float=0x4000+sizeof(float),// float
-    data_number_double=0x4000+sizeof(double),// double
-    data_number_l_double=0x4000+sizeof(long double),// long double
-    data_string_string=0x8000+sizeof(char),// std::string
-    data_string_wstring=0x8000+sizeof(wchar_t),// std::wstring
-    data_string_bytes=0x8000,// std::vector<>
-    data_string_stream=0x0004,
-    data_object_object=0x0008,
-    data_array_vector=0x0010
+    data_null=json_null|0x0|0x0,// null
+    data_bool=json_bool|0x0|0x0,// bool 
+    data_number_s_char=json_number|ctype_sint|sizeof(signed char),// signed char
+    data_number_ss_int=json_number|ctype_sint|sizeof(signed short int),// signed short int
+    data_number_s_int=json_number|ctype_sint|sizeof(signed int),// signed int
+    data_number_sl_int=json_number|ctype_sint|sizeof(signed long int),// signed long int
+    data_number_sll_int=json_number|ctype_sint|sizeof(signed long long int),// signed long long int
+    data_number_u_char=json_number|ctype_uint|sizeof(unsigned char),// unsigned char
+    data_number_us_int=json_number|ctype_uint|sizeof(unsigned short int),// unsigned short int
+    data_number_u_int=json_number|ctype_uint|sizeof(unsigned int),// unsigned int
+    data_number_ul_int=json_number|ctype_uint|sizeof(unsigned long int),// unsigned long int
+    data_number_ull_int=json_number|ctype_uint|sizeof(unsigned long long int),// unsigned long long int
+    data_number_float=json_number|ctype_float|sizeof(float),// float
+    data_number_double=json_number|ctype_float|sizeof(double),// double
+    data_number_l_double=json_number|ctype_float|sizeof(long double),// long double
+    data_string_string=json_string|ctype_string|sizeof(char),// std::string
+    data_string_wstring=json_string|ctype_string|sizeof(wchar_t),// std::wstring
+    data_string_bytes=json_string|ctype_string|0x0,// std::vector<>
+    data_string_stream=json_string|ctype_string|0xff,
+    data_object_object=json_object|ctype_complex|complex_object,
+    data_array_array=json_array|ctype_complex|complex_array,
+    data_array_deque=json_array|ctype_complex|complex_deque,
+    data_array_forward_list=json_array|ctype_complex|complex_forward_list,
+    data_array_list=json_array|ctype_complex|complex_list,
+    data_array_map=json_array|ctype_complex|complex_map,
+    data_array_multimap=json_array|ctype_complex|complex_multimap,
+    data_array_queue=json_array|ctype_complex|complex_queue,
+    data_array_priority_queue=json_array|ctype_complex|complex_priority_queue,
+    data_array_set=json_array|ctype_complex|complex_set,
+    data_array_multiset=json_array|ctype_complex|complex_multiset,
+    data_array_stack=json_array|ctype_complex|complex_stack,
+    data_array_unordered_map=json_array|ctype_complex|complex_unordered_map,
+    data_array_unordered_multimap=json_array|ctype_complex|complex_unordered_multimap,
+    data_array_unordered_set=json_array|ctype_complex|complex_unordered_set,
+    data_array_unordered_multiset=json_array|ctype_complex|complex_unordered_multiset,
+    data_array_vector=json_array|ctype_complex|complex_vector,
 };
 //===========================================
 //! 

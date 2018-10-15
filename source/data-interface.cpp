@@ -55,16 +55,10 @@ struct object_struct_t {
 };
 //============================================
 bool complex_type(data_t type){
-    switch(type){
-        case data_object_object:
-        case data_array_vector:
-            return(true);
-        default:break;
-    }
-    return(false);
+  return((type&ctype__mask)==ctype_complex);
 }
 bool simple_type(data_t type){
-    return(!complex_type(type));
+  return(!complex_type(type));
 }
 const std::string & type_name(data_t type){
   static const std::string unknown("unknown");
@@ -90,6 +84,21 @@ const std::string & type_name(data_t type){
     map_item(data_string_bytes),
     map_item(data_string_stream),
     map_item(data_object_object),
+    map_item(data_array_array),
+    map_item(data_array_deque),
+    map_item(data_array_forward_list),
+    map_item(data_array_list),
+    map_item(data_array_map),
+    map_item(data_array_multimap),
+    map_item(data_array_queue),
+    map_item(data_array_priority_queue),
+    map_item(data_array_set),
+    map_item(data_array_multiset),
+    map_item(data_array_stack),
+    map_item(data_array_unordered_map),
+    map_item(data_array_unordered_multimap),
+    map_item(data_array_unordered_set),
+    map_item(data_array_unordered_multiset),
     map_item(data_array_vector)
     #undef map_item 
   };
