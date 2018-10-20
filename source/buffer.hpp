@@ -50,16 +50,16 @@ class interface {
 protected:
     typedef uint32_t array_size_t;
 private:
-    template<typename T> bool testInput(const T & input){
+    template<typename T> bool testInput(const T & input) const {
         return(getFreeSpace()<sizeof(input)); 
     }
-    template<typename T> bool testOutput(const T & output){
+    template<typename T> bool testOutput(const T & output) const {
         return(getSize()<sizeof(output)); 
     }
-    template<class T> bool testInputArray(const T & input){
+    template<class T> bool testInputArray(const T & input) const {
         return(getFreeSpace()<(sizeof(input.back())*input.size()+sizeof(array_size_t))); 
     }
-    template<class T> bool testOutputArray(const T & output){
+    template<class T> bool testOutputArray(const T & output) const {
         return(getSize()<(sizeof(output.back())*getArraySize()+sizeof(array_size_t)));
     }
     template<typename T> void dataIn(const T & input,bool test=true){
@@ -86,7 +86,7 @@ private:
     }
     virtual void byteIn(const byte_t & byte)=0;
     virtual void byteOut(byte_t & byte)=0;
-    virtual array_size_t getArraySize()=0;
+    virtual array_size_t getArraySize() const=0;
 public:
     //! 
     //! @brief Zwraca maksymalny rozmiar rozmiar bufora. Funkcja do nadpisania.
@@ -114,23 +114,23 @@ public:
     //! @return true 'input' zmieści się w buforze.
     //! @return false  'input' nie zmieści się w buforze.
     //! 
-    bool testIn(const signed char & input){return(!testInput(input));}
-    bool testIn(const signed short int & input){return(!testInput(input));}
-    bool testIn(const signed int & input){return(!testInput(input));}
-    bool testIn(const signed long int & input){return(!testInput(input));}
-    bool testIn(const signed long long int & input){return(!testInput(input));}
-    bool testIn(const unsigned char & input){return(!testInput(input));}
-    bool testIn(const unsigned short int & input){return(!testInput(input));}
-    bool testIn(const unsigned int & input){return(!testInput(input));}
-    bool testIn(const unsigned long int & input){return(!testInput(input));}
-    bool testIn(const unsigned long long int & input){return(!testInput(input));}
-    bool testIn(const float & input){return(!testInput(input));}
-    bool testIn(const double & input){return(!testInput(input));}
-    bool testIn(const long double & input){return(!testInput(input));}
-    bool testIn(const bool & input){return(!testInput(input));}
-    bool testIn(const std::string & input){return(!testInputArray(input));}
-    bool testIn(const std::wstring & input){return(!testInputArray(input));}
-    bool testIn(const byte_vector_t & input){return(!testInputArray(input));}
+    bool testIn(const signed char & input) const {return(!testInput(input));}
+    bool testIn(const signed short int & input) const {return(!testInput(input));}
+    bool testIn(const signed int & input) const {return(!testInput(input));}
+    bool testIn(const signed long int & input) const {return(!testInput(input));}
+    bool testIn(const signed long long int & input) const {return(!testInput(input));}
+    bool testIn(const unsigned char & input) const {return(!testInput(input));}
+    bool testIn(const unsigned short int & input) const {return(!testInput(input));}
+    bool testIn(const unsigned int & input) const {return(!testInput(input));}
+    bool testIn(const unsigned long int & input) const {return(!testInput(input));}
+    bool testIn(const unsigned long long int & input) const {return(!testInput(input));}
+    bool testIn(const float & input) const {return(!testInput(input));}
+    bool testIn(const double & input) const {return(!testInput(input));}
+    bool testIn(const long double & input) const {return(!testInput(input));}
+    bool testIn(const bool & input) const {return(!testInput(input));}
+    bool testIn(const std::string & input) const {return(!testInputArray(input));}
+    bool testIn(const std::wstring & input) const {return(!testInputArray(input));}
+    bool testIn(const byte_vector_t & input) const {return(!testInputArray(input));}
 
     //! 
     //! @brief Dodaje zawartość 'input' do bufora.
@@ -163,23 +163,23 @@ public:
     //! @return true Bufor wystarczy do wypełnienia 'output'.
     //! @return false Bufor nie wystarczy do wypełnienia 'output'.
     //! 
-    bool testOut(const signed char & output){return(!testOutput(output));}
-    bool testOut(const signed short int & output){return(!testOutput(output));}
-    bool testOut(const signed int & output){return(!testOutput(output));}
-    bool testOut(const signed long int & output){return(!testOutput(output));}
-    bool testOut(const signed long long int & output){return(!testOutput(output));}
-    bool testOut(const unsigned char & output){return(!testOutput(output));}
-    bool testOut(const unsigned short int & output){return(!testOutput(output));}
-    bool testOut(const unsigned int & output){return(!testOutput(output));}
-    bool testOut(const unsigned long int & output){return(!testOutput(output));}
-    bool testOut(const unsigned long long int & output){return(!testOutput(output));}
-    bool testOut(const float & output){return(!testOutput(output));}
-    bool testOut(const double & output){return(!testOutput(output));}
-    bool testOut(const long double & output){return(!testOutput(output));}
-    bool testOut(const bool & output){return(!testOutput(output));}
-    bool testOut(const std::string & output){return(!testOutputArray(output));}
-    bool testOut(const std::wstring & output){return(!testOutputArray(output));}
-    bool testOut(const byte_vector_t & output){return(!testOutputArray(output));}
+    bool testOut(const signed char & output) const {return(!testOutput(output));}
+    bool testOut(const signed short int & output) const {return(!testOutput(output));}
+    bool testOut(const signed int & output) const {return(!testOutput(output));}
+    bool testOut(const signed long int & output) const {return(!testOutput(output));}
+    bool testOut(const signed long long int & output) const {return(!testOutput(output));}
+    bool testOut(const unsigned char & output) const {return(!testOutput(output));}
+    bool testOut(const unsigned short int & output) const {return(!testOutput(output));}
+    bool testOut(const unsigned int & output) const {return(!testOutput(output));}
+    bool testOut(const unsigned long int & output) const {return(!testOutput(output));}
+    bool testOut(const unsigned long long int & output) const {return(!testOutput(output));}
+    bool testOut(const float & output) const {return(!testOutput(output));}
+    bool testOut(const double & output) const {return(!testOutput(output));}
+    bool testOut(const long double & output) const {return(!testOutput(output));}
+    bool testOut(const bool & output) const {return(!testOutput(output));}
+    bool testOut(const std::string & output) const {return(!testOutputArray(output));}
+    bool testOut(const std::wstring & output) const {return(!testOutputArray(output));}
+    bool testOut(const byte_vector_t & output) const {return(!testOutputArray(output));}
 
     //! 
     //! @brief Wstawia zawartość bufora do 'output'.
@@ -215,7 +215,7 @@ private:
     std::deque<byte_t> q;
     void byteIn(const byte_t & byte);
     void byteOut(byte_t & byte);
-    interface::array_size_t getArraySize();
+    interface::array_size_t getArraySize() const;
 public:
     //! 
     //! @brief Tworzy Bufor.

@@ -51,7 +51,7 @@ void basic::byteOut(byte_t & byte){
     byte=q.front();
     q.pop_front();
 }
-basic::interface::array_size_t basic::getArraySize(){
+basic::interface::array_size_t basic::getArraySize() const {
   basic::interface::array_size_t size=0;
   byte_t* ptr=(byte_t*)(&size);
   if (q.size()<sizeof(size)) return(size);
@@ -60,9 +60,9 @@ basic::interface::array_size_t basic::getArraySize(){
 }
 basic::basic():max(max_size){}
 basic::basic(const std::size_t & maxSize):max((maxSize<max_size)?maxSize:max_size){}
-std::size_t basic::getMaxSize() const{return(max);}
-std::size_t basic::getFreeSpace() const{return(max-q.size());}
-std::size_t basic::getSize() const{return(q.size());}
+std::size_t basic::getMaxSize() const {return(max);}
+std::size_t basic::getFreeSpace() const {return(max-q.size());}
+std::size_t basic::getSize() const {return(q.size());}
 //===========================================
 } }
 //===========================================
