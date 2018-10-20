@@ -62,36 +62,58 @@ private:
     template<class T> bool testOutputArray(const T & output){
         return(getSize()<(sizeof(output.back())*getArraySize()+sizeof(array_size_t)));
     }
-    template<typename T> void dataIn(const T & input){
+    template<typename T> void dataIn(const T & input,bool test=true){
         const byte_t* ptr=(byte_t*)(&input);
-        if (testInput(input)) throw std::range_error("Input to large for ict::buffer::interface [1]!");
+        if (test) if (testInput(input)) throw std::range_error("Input to large for ict::buffer::interface [1]!");
         for (std::size_t k=0;k<sizeof(input);k++)  byteIn(ptr[k]);
     }
-    template<typename T> void dataOut(T & output){
+    template<typename T> void dataOut(T & output,bool test=true){
         byte_t* ptr=(byte_t*)(&output);
-        if (testOutput(output)) throw std::range_error("Output to small for ict::buffer::interface [1]!");
+        if (test) if (testOutput(output)) throw std::range_error("Output to small for ict::buffer::interface [1]!");
         for (std::size_t k=0;k<sizeof(output);k++) byteOut(ptr[k]);
     }
-    template<class T> void dataInArray(const T & input){
+    template<class T> void dataInArray(const T & input,bool test=true){
         array_size_t size=input.size();
-        if (testInputArray(input)) throw std::range_error("Input to large for ict::buffer::interface [2]!");
-        dataIn(size);
-        for (std::size_t k=0;k<size;k++) dataIn(input[k]);
+        if (test) if (testInputArray(input)) throw std::range_error("Input to large for ict::buffer::interface [2]!");
+        dataIn(size,false);
+        for (std::size_t k=0;k<size;k++) dataIn(input[k],false);
     }
-    template<class T> void dataOutArray(T & output){
+    template<class T> void dataOutArray(T & output,bool test=true){
         array_size_t size;
-        if (testOutputArray(output)) throw std::range_error("Output to small for ict::buffer::interface [2]!");
-        dataOut(size);
-        for (std::size_t k=0;k<size;k++) dataOut(output[k]);
+        if (test) if (testOutputArray(output)) throw std::range_error("Output to small for ict::buffer::interface [2]!");
+        dataOut(size,false);
+        for (std::size_t k=0;k<size;k++) dataOut(output[k],false);
     }
     virtual void byteIn(const byte_t & byte)=0;
     virtual void byteOut(byte_t & byte)=0;
     virtual array_size_t getArraySize()=0;
 public:
+    //! 
+    //! @brief Zwraca maksymalny rozmiar rozmiar bufora. Funkcja do nadpisania.
+    //! 
+    //! @return std::size_t Maksymalny rozmiar bufora.
+    //! 
     virtual std::size_t getMaxSize() const=0;
+    //! 
+    //! @brief Zwraca wolną przestrzeń w buforze. Funkcja do nadpisania.
+    //! 
+    //! @return std::size_t Rozmiar wolnej przestrzeni.
+    //! 
     virtual std::size_t getFreeSpace() const=0;
+    //! 
+    //! @brief Zwraca zajętą przestrzeń w buforze. Funkcja do nadpisania.
+    //! 
+    //! @return std::size_t Rozmiar zajętej przestrzeni.
+    //! 
     virtual std::size_t getSize() const=0;
 
+    //! 
+    //! @brief Sprawdza, czy podany 'input' zmieści się w buforze.
+    //! 
+    //! @param $input Wejście do przetestowania.
+    //! @return true 'input' zmieści się w buforze.
+    //! @return false  'input' nie zmieści się w buforze.
+    //! 
     bool testIn(const signed char & input){return(!testInput(input));}
     bool testIn(const signed short int & input){return(!testInput(input));}
     bool testIn(const signed int & input){return(!testInput(input));}
@@ -110,6 +132,12 @@ public:
     bool testIn(const std::wstring & input){return(!testInputArray(input));}
     bool testIn(const byte_vector_t & input){return(!testInputArray(input));}
 
+    //! 
+    //! @brief Dodaje zawartość 'input' do bufora.
+    //! 
+    //! @param input Zawartość, która ma być dodana do bufora.
+    //! @return interface& Referencja do siebie.
+    //! 
     interface & operator <<(const signed char & input){dataIn(input);return(*this);}
     interface & operator <<(const signed short int & input){dataIn(input);return(*this);}
     interface & operator <<(const signed int & input){dataIn(input);return(*this);}
@@ -128,6 +156,13 @@ public:
     interface & operator <<(const std::wstring & input){dataInArray(input);return(*this);}
     interface & operator <<(const byte_vector_t & input){dataInArray(input);return(*this);}
 
+    //! 
+    //! @brief Sprawdza, czy zawartość bufora wystarczy do wypełnienia 'output'.
+    //! 
+    //! @param output Wyjście do przetestowania.
+    //! @return true Bufor wystarczy do wypełnienia 'output'.
+    //! @return false Bufor nie wystarczy do wypełnienia 'output'.
+    //! 
     bool testOut(const signed char & output){return(!testOutput(output));}
     bool testOut(const signed short int & output){return(!testOutput(output));}
     bool testOut(const signed int & output){return(!testOutput(output));}
@@ -146,6 +181,12 @@ public:
     bool testOut(const std::wstring & output){return(!testOutputArray(output));}
     bool testOut(const byte_vector_t & output){return(!testOutputArray(output));}
 
+    //! 
+    //! @brief Wstawia zawartość bufora do 'output'.
+    //! 
+    //! @param output Miejsce, do którego ma być wstawiona zawartość bufora.
+    //! @return interface& Referencja do siebie.
+    //! 
     interface & operator >>(signed char & output){dataOut(output);return(*this);}
     interface & operator >>(signed short int & output){dataOut(output);return(*this);}
     interface & operator >>(signed int & output){dataOut(output);return(*this);}
@@ -165,6 +206,9 @@ public:
     interface & operator >>(byte_vector_t & output){dataOutArray(output);return(*this);}
 };
 //===========================================
+//! 
+//! @brief Bufor oparty na std::deque<byte_t>
+//! 
 class basic:public interface {
 private:
     std::size_t max;
@@ -173,10 +217,21 @@ private:
     void byteOut(byte_t & byte);
     interface::array_size_t getArraySize();
 public:
+    //! 
+    //! @brief Tworzy Bufor.
+    //! 
     basic();
+    //! 
+    //! @brief Tworzy bufor i ustawia jego maksymalny rozmiar.
+    //! 
+    //! @param maxSize Maksymalny rozmiar bufora.
+    //! 
     basic(const std::size_t & maxSize);
+    //! Patrz: ict::buffer::interface
     std::size_t getMaxSize() const;
+    //! Patrz: ict::buffer::interface
     std::size_t getFreeSpace() const;
+    //! Patrz: ict::buffer::interface
     std::size_t getSize() const;
 };
 //===========================================

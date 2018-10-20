@@ -14,3 +14,4 @@ C++11 Library with common application modules.
 * [daemon](source/daemon.md)
 * [pool](source/pool.md)
 * [websocket](source/websocket.md)
+* [buffer](source/buffer.md)
