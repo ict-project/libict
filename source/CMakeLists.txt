@@ -13,6 +13,8 @@ set(CMAKE_SOURCE_FILES
   register.cpp daemon.cpp pool.cpp json-object.cpp
   websocket.cpp mutex.cpp buffer.cpp 
   data-types.cpp data-interface.cpp
+  data-simple.cpp data-vector.cpp
+  data-object.cpp data-info.cpp
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})

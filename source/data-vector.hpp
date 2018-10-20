@@ -1,5 +1,5 @@
 //! @file
-//! @brief Data interface module - Source file.
+//! @brief Data vector module - Header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2018
@@ -33,56 +33,56 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
+#ifndef _DATA_VECTOR_HEADER
+#define _DATA_VECTOR_HEADER
 //============================================
 #include "data-interface.hpp"
-#include "data-info.hpp"
-//============================================
-#ifdef ENABLE_TESTING
-#include "test.hpp"
-#endif
 //============================================
 namespace ict { namespace data {
-//============================================
-#define setInfo_m(p,t) \
-void interface::data_setInfo(info & output,number_u_int_type type,const p##t##_type & value) { \
-    if (!output.info_params.size()) output.data_pushBack("info_params"); \
-    output.info_params().emplace_back(); \
-    {\
-      auto & back(output.info_params().back());\
-      back.data_pushBack("type");\
-      back.type()=type;\
-      back.data_pushBack("info_" #t);\
-      back.info_##t()=value;\
-    }\
-}
-setInfo_m(,bool)
-setInfo_m(number_,s_char)
-setInfo_m(number_,ss_int)
-setInfo_m(number_,s_int)
-setInfo_m(number_,sl_int)
-setInfo_m(number_,sll_int)
-setInfo_m(number_,u_char)
-setInfo_m(number_,us_int)
-setInfo_m(number_,u_int)
-setInfo_m(number_,ul_int)
-setInfo_m(number_,ull_int)
-setInfo_m(number_,float)
-setInfo_m(number_,double)
-setInfo_m(number_,l_double)
-setInfo_m(string_,string)
-#undef setInfo_m
-void interface::data_getInfoMain(info & output) const {
-  data_setInfo(output,info_types::data_type,type_name(data_getType()));
-  data_setInfo(output,info_types::data_type,data_getType());
-  data_setInfo(output,info_types::class_name,typeid(*this).name());  
-}
-std::string interface::data_getTag(const std::size_t & index) const{
-  return(std::to_string(index));
-}
+//===========================================
+template<class T> class array_vector_t:public std::vector<T>,public complex_interface{
+private:
+    typedef std::vector<T> vector_t;
+public:
+    //! Patrz: interface::data_clear()
+    void data_clear(const std::string & tag=""){
+        vector_t::clear();
+    }
+    //! Patrz: interface::data_pushFront()
+    bool data_pushFront(const std::string & tag=""){
+        vector_t::emplace(vector_t::begin());
+        return(true);
+    } 
+    //! Patrz: interface::data_pushBack()
+    bool data_pushBack(const std::string & tag=""){
+        vector_t::emplace_back();
+        return(true);
+    }
+    //! Patrz: interface::data_getType()
+    data_t data_getType() const {
+        return(data_array_vector);
+    }
+    //! Patrz: interface::data_getSize()
+    std::size_t data_getSize() const {
+        return(vector_t::size());
+    }
+    //! Patrz: interface::data_getValue()
+    interface & data_getValue(const std::size_t & index) {
+        return(vector_t::operator[](index));
+    }
+    const interface & data_getValue(const std::size_t & index) const {
+        return(vector_t::at(index));
+    }
+    //! Patrz: interface::data_getFront()
+    virtual interface & data_getFront() {
+        return(vector_t::front());
+    }
+    //! Patrz: interface::data_getBack()
+    virtual interface & data_getBack() {
+        return(vector_t::back());
+    }
+};
 //===========================================
 } }
 //===========================================
-#ifdef ENABLE_TESTING
-
 #endif
-//===========================================

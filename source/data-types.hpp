@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _DATA_TYPES_HEADER
 //============================================
 #include <string>
+#include "buffer.hpp"
 //============================================
 namespace ict { namespace data {
 //===========================================
@@ -122,6 +123,24 @@ enum data_t{
     data_array_unordered_multiset=json_array|ctype_complex|complex_unordered_multiset,
     data_array_vector=json_array|ctype_complex|complex_vector,
 };
+//===========================================
+typedef bool bool_type;
+typedef signed char number_s_char_type;
+typedef signed short int number_ss_int_type;
+typedef signed int number_s_int_type;
+typedef signed long int number_sl_int_type;
+typedef signed long long int number_sll_int_type;
+typedef unsigned char number_u_char_type;
+typedef unsigned short int number_us_int_type;
+typedef unsigned int number_u_int_type;
+typedef unsigned long int number_ul_int_type;
+typedef unsigned long long int number_ull_int_type;
+typedef float number_float_type;
+typedef double number_double_type;
+typedef long double number_l_double_type;
+typedef std::string string_string_type;
+typedef std::wstring string_wstring_type;
+typedef ict::buffer::byte_vector_t string_bytes_type;
 //===========================================
 //! 
 //! @brief Sprawdza czy typ jest złożony.

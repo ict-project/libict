@@ -1,5 +1,5 @@
 //! @file
-//! @brief Data interface module - Source file.
+//! @brief Data vector module - Source file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2018
@@ -34,8 +34,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
 //============================================
-#include "data-interface.hpp"
-#include "data-info.hpp"
+#include "data-vector.hpp"
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
@@ -43,42 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //============================================
-#define setInfo_m(p,t) \
-void interface::data_setInfo(info & output,number_u_int_type type,const p##t##_type & value) { \
-    if (!output.info_params.size()) output.data_pushBack("info_params"); \
-    output.info_params().emplace_back(); \
-    {\
-      auto & back(output.info_params().back());\
-      back.data_pushBack("type");\
-      back.type()=type;\
-      back.data_pushBack("info_" #t);\
-      back.info_##t()=value;\
-    }\
-}
-setInfo_m(,bool)
-setInfo_m(number_,s_char)
-setInfo_m(number_,ss_int)
-setInfo_m(number_,s_int)
-setInfo_m(number_,sl_int)
-setInfo_m(number_,sll_int)
-setInfo_m(number_,u_char)
-setInfo_m(number_,us_int)
-setInfo_m(number_,u_int)
-setInfo_m(number_,ul_int)
-setInfo_m(number_,ull_int)
-setInfo_m(number_,float)
-setInfo_m(number_,double)
-setInfo_m(number_,l_double)
-setInfo_m(string_,string)
-#undef setInfo_m
-void interface::data_getInfoMain(info & output) const {
-  data_setInfo(output,info_types::data_type,type_name(data_getType()));
-  data_setInfo(output,info_types::data_type,data_getType());
-  data_setInfo(output,info_types::class_name,typeid(*this).name());  
-}
-std::string interface::data_getTag(const std::size_t & index) const{
-  return(std::to_string(index));
-}
+
 //===========================================
 } }
 //===========================================
