@@ -146,6 +146,8 @@ public:
             return(item_template_t<T>::value[index].value);
         }
     };
+    template<class T> 
+    using item = item_t<T>;
     typedef std::size_t item_offset_t;
     typedef std::size_t item_index_t;
     typedef item_interface_t* item_ptr_t;
@@ -209,6 +211,8 @@ public:
     void data_clear(item_ptr_t item);
     #define ict_data_clear(object,item) object.data_clear(&(object.item));
 };
+//===========================================
+using object = object_object_t;
 //===========================================
 } }
 //===========================================

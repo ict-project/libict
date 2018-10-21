@@ -36,11 +36,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _DATA_VECTOR_HEADER
 #define _DATA_VECTOR_HEADER
 //============================================
+#include <vector>
 #include "data-interface.hpp"
 //============================================
 namespace ict { namespace data {
 //===========================================
-template<class T> class array_vector_t:public std::vector<T>,public complex_interface{
+template<typename T,typename Alloc=std::allocator<T>> 
+class array_vector_t:public std::vector<T,Alloc>,public complex_interface {
 private:
     typedef std::vector<T> vector_t;
 public:
@@ -82,6 +84,9 @@ public:
         return(vector_t::back());
     }
 };
+//===========================================
+template<typename T,typename Alloc=std::allocator<T>>
+using vector = array_vector_t<T,Alloc>;
 //===========================================
 } }
 //===========================================
