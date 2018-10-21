@@ -41,10 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //===========================================
-template<typename T,typename Alloc=std::allocator<T>> 
-class array_vector_t:public std::vector<T,Alloc>,public complex_interface {
+template<typename T,typename A=std::allocator<T>> 
+class array_vector_t:public std::vector<T,A>,public complex_interface {
 private:
-    typedef std::array<T,N> vector_t;
+    typedef std::vector<T,A> vector_t;
 public:
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
