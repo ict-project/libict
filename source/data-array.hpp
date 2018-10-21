@@ -48,7 +48,7 @@ private:
 public:
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
-        for(std::size_t k=0;k<N;k++) array_t::operator[](k).clear();
+        for(std::size_t k=0;k<N;k++) array_t::operator[](k).data_clear();
     }
     //! Patrz: interface::data_pushFront()
     bool data_pushFront(const std::string & tag=""){
