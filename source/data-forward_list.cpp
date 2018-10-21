@@ -48,6 +48,6 @@ namespace ict { namespace data {
 } }
 //===========================================
 #ifdef ENABLE_TESTING
-ict::data::forward_list<ict::data::s_int_t> example;
+static ict::data::forward_list<ict::data::s_int_t> example;
 #endif
 //===========================================
