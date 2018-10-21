@@ -44,7 +44,7 @@ namespace ict { namespace data {
 template<typename T,typename Alloc=std::allocator<T>> 
 class array_vector_t:public std::vector<T,Alloc>,public complex_interface {
 private:
-    typedef std::vector<T> vector_t;
+    typedef std::array<T,N> vector_t;
 public:
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
