@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
+#include "data-simple.hpp"
 #endif
 //============================================
 namespace ict { namespace data {
@@ -47,6 +48,6 @@ namespace ict { namespace data {
 } }
 //===========================================
 #ifdef ENABLE_TESTING
-
+static ict::data::deque<ict::data::ull_int_t> example;
 #endif
 //===========================================
