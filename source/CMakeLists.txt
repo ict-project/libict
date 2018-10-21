@@ -15,7 +15,7 @@ set(CMAKE_SOURCE_FILES
   data-types.cpp data-interface.cpp
   data-simple.cpp data-vector.cpp
   data-object.cpp data-array.cpp
-  data-info.cpp
+  data-deque.cpp data-info.cpp
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
