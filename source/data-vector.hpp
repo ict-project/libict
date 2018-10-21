@@ -85,8 +85,8 @@ public:
     }
 };
 //===========================================
-template<typename T,typename Alloc=std::allocator<T>>
-using vector = array_vector_t<T,Alloc>;
+template<typename T,typename A=std::allocator<T>>
+using vector = array_vector_t<T,A>;
 //===========================================
 } }
 //===========================================
