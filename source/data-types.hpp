@@ -81,6 +81,7 @@ enum complex_t{
     complex_unordered_set=0xf,
     complex_unordered_multiset=0x10,
     complex_vector=0x11,
+    complex_tuple=0x11,
     //=======================
     complex__mask=0xff,
 };
@@ -122,6 +123,7 @@ enum data_t{
     data_array_unordered_set=json_array|ctype_complex|complex_unordered_set,
     data_array_unordered_multiset=json_array|ctype_complex|complex_unordered_multiset,
     data_array_vector=json_array|ctype_complex|complex_vector,
+    data_array_tuple=json_array|ctype_complex|complex_tuple,
 };
 //===========================================
 typedef bool bool_type;
