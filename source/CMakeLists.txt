@@ -17,7 +17,8 @@ set(CMAKE_SOURCE_FILES
   data-object.cpp data-array.cpp
   data-deque.cpp data-forward_list.cpp 
   data-tuple.cpp
-  data-info.cpp
+  data-info.cpp 
+  utf8-robot.cpp
 )
 
 add_library(ict-static STATIC ${CMAKE_SOURCE_FILES})
