@@ -122,7 +122,8 @@ const test_string_t test_string({
   "Czyść sejf glinom! W łóżku Hań ...pędź, trąb!",
   "Strząść puch nimfy w łój kań? Boże, ględź!",
   "W Mińsku lżą naftę Jóź. Gość brzydł. Pech!",
-  "Sznur śliw. Chłód gąb. Pot męk. Jaźń żyć. Fe!"
+  "Sznur śliw. Chłód gąb. Pot męk. Jaźń żyć. Fe!",
+  "クイックブラウンキツネは怠惰な犬の上を飛びます。",
 });
 const test_wstring_t test_wstring({
   L"Pchnąć w tę łódź jeża lub ośm skrzyń fig.",
@@ -150,7 +151,8 @@ const test_wstring_t test_wstring({
   L"Czyść sejf glinom! W łóżku Hań ...pędź, trąb!",
   L"Strząść puch nimfy w łój kań? Boże, ględź!",
   L"W Mińsku lżą naftę Jóź. Gość brzydł. Pech!",
-  L"Sznur śliw. Chłód gąb. Pot męk. Jaźń żyć. Fe!"
+  L"Sznur śliw. Chłód gąb. Pot męk. Jaźń żyć. Fe!",
+  L"クイックブラウンキツネは怠惰な犬の上を飛びます。",
 });
 //============================================
 }}

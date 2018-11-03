@@ -1,5 +1,5 @@
 //! @file
-//! @brief UTF8 robot header file.
+//! @brief UTF8 robot module - Header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2018
@@ -42,14 +42,29 @@ namespace ict { namespace utf8 {
 //===========================================
 class Robot{
 private:
-    bool ready=false;
+    enum status_t {
+        status_ready=0,
+        status_empty=1,
+        status_wating_for_2=2,
+        status_wating_for_3=3,
+        status_wating_for_4=4,
+        status_wating_for_5=5,
+        status_wating_for_6=6,
+    };
+    status_t status;
     std::string s;
     wchar_t c;
+    status_t getSize8(const uint8_t & input);
+    status_t getSize32(const uint32_t & input);
 public:
     //! 
     //! @brief Empty wchar.
     //! 
-    static const wchar_t empty;
+    static const wchar_t empty_char;
+    //! 
+    //! @brief Empty string.
+    //! 
+    static const std::string empty_string;
     //! 
     //! @brief Construct a new operator () object
     //! 
@@ -57,12 +72,18 @@ public:
     //! 
     Robot & operator ()(const char & input);
     //! 
+    //! @brief Construct a new operator () object
+    //! 
+    //! @param input Znak do załadowania
+    //! 
+    Robot & operator ()(const wchar_t & input);
+    //! 
     //! @brief Get the Char object
     //! 
     //! @return const wchar_t& 
     //! 
     const wchar_t & getChar() const {
-        return(ready?c:empty);
+        return(status?empty_char:c);
     }
     //! 
     //! @brief Get the String object
@@ -70,8 +91,7 @@ public:
     //! @return const std::string& 
     //! 
     const std::string & getString() const {
-        static const std::string empty_string;
-        return(ready?s:empty_string);
+        return(status?empty_string:s);
     }
     //! 
     //! @brief 
@@ -80,7 +100,13 @@ public:
     //! @return false Jeszcze nie gotowy do odczytu.
     //! 
     bool isReady() const {
-        return(ready);
+        return(!status);
+    }
+    //! 
+    //! @brief Zeruje obiekt
+    //! 
+    void clear(){
+        status=status_empty;
     }
     //! 
     //! @brief Sprawdza, czy podany string ma wielobajtowe znaki UTF8
