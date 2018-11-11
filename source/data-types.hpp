@@ -112,6 +112,7 @@ enum data_t{
     data_array_forward_list=json_array|ctype_complex|complex_forward_list,
     data_array_list=json_array|ctype_complex|complex_list,
     data_array_map=json_array|ctype_complex|complex_map,
+    data_object_map=json_object|ctype_complex|complex_map,
     data_array_multimap=json_array|ctype_complex|complex_multimap,
     data_array_queue=json_array|ctype_complex|complex_queue,
     data_array_priority_queue=json_array|ctype_complex|complex_priority_queue,

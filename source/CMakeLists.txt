@@ -16,7 +16,7 @@ set(CMAKE_SOURCE_FILES
   data-simple.cpp data-vector.cpp
   data-object.cpp data-array.cpp
   data-deque.cpp data-forward_list.cpp 
-  data-tuple.cpp
+  data-tuple.cpp data-map.cpp
   data-info.cpp 
   utf8-robot.cpp
 )
@@ -62,37 +62,8 @@ DESTINATION include/libict COMPONENT headers)
 ################################################################
 enable_testing()
 
-add_test(NAME ict-utf8-tc1 COMMAND libict-test ict utf8 tc1)
-add_test(NAME ict-utf8-tc2 COMMAND libict-test ict utf8 tc2)
+add_test(NAME ict-all COMMAND libict-test ict)
 
-add_test(NAME ict-base64-tc1 COMMAND libict-test ict base64 tc1)
-add_test(NAME ict-base64-tc2 COMMAND libict-test ict base64 tc2)
-add_test(NAME ict-base64-tc3 COMMAND libict-test ict base64 tc3)
-add_test(NAME ict-base64-tc4 COMMAND libict-test ict base64 tc4)
-add_test(NAME ict-base64-tc5 COMMAND libict-test ict base64 tc5)
-add_test(NAME ict-base64-tc6 COMMAND libict-test ict base64 tc6)
-add_test(NAME ict-base64-tc7 COMMAND libict-test ict base64 tc7)
-add_test(NAME ict-base64-tc8 COMMAND libict-test ict base64 tc8)
-add_test(NAME ict-base64-tc9 COMMAND libict-test ict base64 tc9)
-add_test(NAME ict-base64-tc10 COMMAND libict-test ict base64 tc10)
-add_test(NAME ict-base64-tc11 COMMAND libict-test ict base64 tc11)
-add_test(NAME ict-base64-tc12 COMMAND libict-test ict base64 tc12)
-
-add_test(NAME ict-options-tc1 COMMAND libict-test ict options tc1)
-add_test(NAME ict-options-tc2 COMMAND libict-test ict options tc2)
-add_test(NAME ict-options-tc3 COMMAND libict-test ict options tc3)
-add_test(NAME ict-options-tc4 COMMAND libict-test ict options tc4)
-add_test(NAME ict-options-tc5 COMMAND libict-test ict options tc5)
-add_test(NAME ict-options-tc6 COMMAND libict-test ict options tc6)
-
-add_test(NAME ict-logger-tc1 COMMAND libict-test ict logger tc1)
-add_test(NAME ict-logger-tc2 COMMAND libict-test ict logger tc2)
-
-add_test(NAME ict-random-tc1 COMMAND libict-test ict random tc1)
-
-add_test(NAME ict-register-tc1 COMMAND libict-test ict reg tc1)
-
-add_test(NAME ict-daemon-tc1 COMMAND libict-test ict daemon tc1)
 ################################################################
 #set(CPACK_GENERATOR "TZ;TGZ;STGZ;DEB;RPM") # Linux
 #set(CPACK_GENERATOR "TZ;TGZ;STGZ")         # MacOS
