@@ -44,30 +44,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 std::map<int,int> t;
 namespace ict { namespace data {
 //===========================================
-#define CONSTRUCTORS(name)\
+#define CONSTRUCTORS(name,body)\
 name(){}\
 explicit name(const Compare& comp,const Alloc& alloc=Alloc()):\
-    parent_t(comp,alloc){}\
+    parent_t(comp,alloc){body}\
 template<class Input>name(Input first,Input last,const Compare& comp=Compare(),const Alloc& alloc=Alloc()):\
-    parent_t(first,last,comp,alloc){}\
+    parent_t(first,last,comp,alloc){body}\
 name(const name& other):\
-    parent_t(other){}\
+    parent_t(other){body}\
 name(const name& other,const Alloc& alloc):\
-    parent_t(other,alloc){}\
+    parent_t(other,alloc){body}\
 name(name&& other):\
-    parent_t(other){}\
+    parent_t(other){body}\
 name(name&& other,const Alloc& alloc):\
-    parent_t(other,alloc){}\
+    parent_t(other,alloc){body}\
 name(std::initializer_list<Tp> init,const Compare& comp=Compare(),const Alloc& alloc=Alloc()):\
-    parent_t(init,comp,alloc){}\
+    parent_t(init,comp,alloc){body}\
 name(const std::map<Key,Tp,Compare,Alloc>& other):\
-    parent_t(other){}\
+    parent_t(other){body}\
 name(const std::map<Key,Tp,Compare,Alloc>& other,const Alloc& alloc):\
-    parent_t(other,alloc){}\
+    parent_t(other,alloc){body}\
 name(std::map<Key,Tp,Compare,Alloc>&& other):\
-    parent_t(other){}\
+    parent_t(other){body}\
 name(std::map<Key,Tp,Compare,Alloc>&& other,const Alloc& alloc):\
-    parent_t(other,alloc){}
+    parent_t(other,alloc){body}
 //===========================================
 template <
     typename Key, 
@@ -116,8 +116,14 @@ protected:
         }
         return(false);
     }
+    void insert_all(){
+        list.clear();
+        for (typename parent_t::iterator it=parent_t::begin();it!=parent_t::end();++it){
+            list.insert(it);
+        }
+    }
 public:
-    CONSTRUCTORS(map_template)
+    CONSTRUCTORS(map_template,)
     mapped_type & operator[](const key_type & key){
         std::size_t s=parent_t::size();
         mapped_type & out(parent_t::operator[](key));
@@ -253,7 +259,7 @@ private:
     ptr_t begin;
     ptr_t end;
 public:
-    CONSTRUCTORS(array_map_t)
+    CONSTRUCTORS(array_map_t,{parent_t::insert_all();})
     void clear() {
         parent_t::clear();
         begin.reset(nullptr);
@@ -353,7 +359,7 @@ public:
 private:
     typedef map_template<std::string,Tp,Compare,Alloc> parent_t;
 public:
-    CONSTRUCTORS(object_map_t)
+    CONSTRUCTORS(object_map_t,{parent_t::insert_all();})
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
         if (tag.size()){
