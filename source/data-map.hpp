@@ -384,6 +384,13 @@ public:
     std::size_t data_getSize() const {
         return(parent_t::size());
     }
+    //! Patrz: interface::data_getTag()
+    std::string data_getTag(const std::size_t & index) const{
+        if (index<parent_t::list.size()){
+            return(parent_t::list[index]->first);
+        }
+        throw std::range_error("No value!");
+    }
     //! Patrz: interface::data_getValue()
     interface & data_getValue(const std::size_t & index) {
         if (index<parent_t::list.size()){
