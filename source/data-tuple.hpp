@@ -43,8 +43,9 @@ namespace ict { namespace data {
 //===========================================
 template< class... Types > 
 class array_tuple_t:public std::tuple<Types...>,public complex_interface {
-private:
+public:
     typedef std::tuple<Types...> tuple_t;
+private:
     template <std::size_t N,class T1>
     void data_clear_priv(const std::string & tag=""){
         std::get<N>(*this).data_clear(tag);
@@ -75,6 +76,54 @@ private:
         return(data_getValue_priv<N+1,T2,Tn ...>(index));
     }
 public:
+    array_tuple_t(){}
+    array_tuple_t(const Types&... args ):
+        tuple_t(args ...){}
+    template <class... UTypes> array_tuple_t(UTypes&&... args):
+        tuple_t(args ...){}
+    template <class... UTypes> array_tuple_t(const array_tuple_t<UTypes...>& other):
+        tuple_t(other){}
+    template <class... UTypes> array_tuple_t(array_tuple_t<UTypes...>&& other):
+        tuple_t(other){}
+    template <class U1,class U2> array_tuple_t(const std::pair<U1,U2>& p):
+        tuple_t(p){}
+    template <class U1,class U2> array_tuple_t(std::pair<U1,U2>&& p):
+        tuple_t(p){}
+    array_tuple_t(const array_tuple_t& other):
+        tuple_t(other){}
+    array_tuple_t(array_tuple_t&& other):
+        tuple_t(other){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a):
+        tuple_t(x,a){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const Types&... args):
+        tuple_t(x,a,args ...){}
+    template <class Alloc,class... UTypes> array_tuple_t(std::allocator_arg_t x,const Alloc& a,UTypes&&... args):
+        tuple_t(x,a,args ...){}
+    template <class Alloc,class... UTypes> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const array_tuple_t<UTypes...>& other):
+        tuple_t(x,a,other){}
+    template <class Alloc,class... UTypes> array_tuple_t(std::allocator_arg_t x,const Alloc& a,array_tuple_t<UTypes...>&& other):
+        tuple_t(x,a,other){}
+    template <class Alloc,class U1,class U2> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const std::pair<U1, U2>& p):
+        tuple_t(x,a,p){}
+    template <class Alloc,class U1,class U2> array_tuple_t(std::allocator_arg_t x,const Alloc& a,std::pair<U1, U2>&& p):
+        tuple_t(x,a,p){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const array_tuple_t& other):
+        tuple_t(x,a,other){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a,array_tuple_t&& other):
+        tuple_t(x,a,other){}
+    template <class... UTypes> array_tuple_t(const std::tuple<UTypes...>& other):
+        tuple_t(other){}
+    template <class... UTypes> array_tuple_t(std::tuple<UTypes...>&& other):
+        tuple_t(other){}
+   template <class Alloc,class... UTypes> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const std::tuple<UTypes...>& other):
+        tuple_t(x,a,other){}
+    template <class Alloc,class... UTypes> array_tuple_t(std::allocator_arg_t x,const Alloc& a,std::tuple<UTypes...>&& other):
+        tuple_t(x,a,other){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a,const tuple_t& other):
+        tuple_t(x,a,other){}
+    template <class Alloc> array_tuple_t(std::allocator_arg_t x,const Alloc& a,tuple_t&& other):
+        tuple_t(x,a,other){}
+
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
         data_clear_priv<0,Types...>(tag);
