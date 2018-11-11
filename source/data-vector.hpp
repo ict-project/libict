@@ -43,9 +43,40 @@ namespace ict { namespace data {
 //===========================================
 template<typename T,typename A=std::allocator<T>> 
 class array_vector_t:public std::vector<T,A>,public complex_interface {
-private:
-    typedef std::vector<T,A> vector_t;
 public:
+    typedef std::vector<T,A> vector_t;
+    typedef typename vector_t::size_type size_type;
+    typedef typename vector_t::value_type value_type;
+    typedef typename vector_t::allocator_type allocator_type;
+public:
+    array_vector_t(){}
+    explicit array_vector_t(const allocator_type & alloc):
+        vector_t(alloc){}
+    array_vector_t(size_type count,const value_type& value,const allocator_type& alloc=allocator_type()):
+        vector_t(count,value,alloc){}
+    explicit array_vector_t(size_type count):
+        vector_t(count){}
+    template<class Input> array_vector_t(Input first,Input last,const allocator_type& alloc=allocator_type()):
+        vector_t(first,last,alloc){}
+    array_vector_t(const array_vector_t& other):
+        vector_t(other){}
+    array_vector_t(const array_vector_t& other,const allocator_type& alloc):
+        vector_t(other,alloc){}
+    array_vector_t(array_vector_t&& other):
+        vector_t(other){}
+    array_vector_t(array_vector_t&& other,const allocator_type& alloc):
+        vector_t(other,alloc){}
+    array_vector_t(std::initializer_list<value_type> init,const allocator_type& alloc=allocator_type()):
+        vector_t(init,alloc){}
+    array_vector_t(const vector_t& other):
+        vector_t(other){}
+    array_vector_t(const vector_t& other,const allocator_type& alloc):
+        vector_t(other,alloc){}
+    array_vector_t(vector_t&& other):
+        vector_t(other){}
+    array_vector_t(vector_t&& other,const allocator_type& alloc):
+        vector_t(other,alloc){}
+
     //! Patrz: interface::data_clear()
     void data_clear(const std::string & tag=""){
         vector_t::clear();
