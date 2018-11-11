@@ -42,11 +42,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data {
 //===========================================
+#define CONSTRUCTORS(name)\
+name(){}\
+name(const name & input):basic(input.value){}\
+template<typename I> name(const I & input):basic(input){}
+//===========================================
 template<typename T> class basic: public simple_interface{
 public:
     T value=0;
+    bool operator==(const basic<T>& rhs) const {return(value==rhs.value);}
+    bool operator!=(const basic<T>& rhs) const {return(value!=rhs.value);}
+    bool operator<(const basic<T>& rhs) const {return(value<rhs.value);}
+    bool operator>(const basic<T>& rhs) const {return(value>rhs.value);}
+    bool operator<=(const basic<T>& rhs) const {return(value<=rhs.value);}
+    bool operator>=(const basic<T>& rhs) const {return(value>=rhs.value);}
 public:
     typedef T value_t;
+public:
+    basic():value(0){}
+    basic(const basic & input):value(input.value){}
+    template <typename I> basic(const I & input):value(input){}
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
         //if (buffer.testOut(value)){
@@ -87,92 +102,122 @@ public:
 };
 class bool_t:public basic<bool_type>{
 public:
+    CONSTRUCTORS(bool_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_bool);}
 };
 class number_s_char_t:public basic<number_s_char_type>{
 public:
+    CONSTRUCTORS(number_s_char_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_char);}
 };
 using s_char_t = number_s_char_t;
 class number_ss_int_t:public basic<number_ss_int_type>{
 public:
+    CONSTRUCTORS(number_ss_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ss_int);}
 };
 using ss_int_t = number_ss_int_t;
 class number_s_int_t:public basic<number_s_int_type>{
 public:
+    CONSTRUCTORS(number_s_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_s_int);}
 };
 using s_int_t = number_s_int_t;
 class number_sl_int_t:public basic<number_sl_int_type>{
 public:
+    CONSTRUCTORS(number_sl_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sl_int);}
 };
 using sl_int_t = number_sl_int_t;
 class number_sll_int_t:public basic<number_sll_int_type>{
 public:
+    CONSTRUCTORS(number_sll_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_sll_int);}
 };
 using sll_int_t = number_sll_int_t;
 class number_u_char_t:public basic<number_u_char_type>{
 public:
+    CONSTRUCTORS(number_u_char_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_u_char);}
 };
 using u_char_t = number_u_char_t;
 class number_us_int_t:public basic<number_us_int_type>{
 public:
+    CONSTRUCTORS(number_us_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
 using us_int_t = number_us_int_t;
 class number_u_int_t:public basic<number_u_int_type>{
 public:
+    CONSTRUCTORS(number_u_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_us_int);}
 };
 using u_int_t = number_u_int_t;
 class number_ul_int_t:public basic<number_ul_int_type>{
 public:
+    CONSTRUCTORS(number_ul_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ul_int);}
 };
 using ul_int_t = number_ul_int_t;
 class number_ull_int_t:public basic<number_ull_int_type>{
 public:
+    CONSTRUCTORS(number_ull_int_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_ull_int);}
 };
 using ull_int_t = number_ull_int_t;
 class number_float_t:public basic<number_float_type>{
 public:
+    CONSTRUCTORS(number_float_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_float);}
 };
 using float_t = number_float_t;
 class number_double_t:public basic<number_double_type>{
 public:
+    CONSTRUCTORS(number_double_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_double);}
 };
 using double_t = number_double_t;
 class number_l_double_t:public basic<number_l_double_type>{
 public:
+    CONSTRUCTORS(number_l_double_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_number_l_double);}
 };
 using l_double_t = number_l_double_t;
+//===========================================
+#undef CONSTRUCTORS
+#define CONSTRUCTORS(name)\
+name(){}\
+name(const name & input):string(input.value){}\
+template<typename I> name(const I & input):string(input){}
+//===========================================
 template<class T> class string: public simple_interface{
 public:
     T value;
+    bool operator==(const string<T>& rhs) const {return(value==rhs.value);}
+    bool operator!=(const string<T>& rhs) const {return(value!=rhs.value);}
+    bool operator<(const string<T>& rhs) const {return(value<rhs.value);}
+    bool operator>(const string<T>& rhs) const {return(value>rhs.value);}
+    bool operator<=(const string<T>& rhs) const {return(value<=rhs.value);}
+    bool operator>=(const string<T>& rhs) const {return(value>=rhs.value);}
 public:
     typedef T value_t;
+    string(){}
+    string(const string & input):string(input.value){}
+    template <typename I> string(const I & input):value(input){}
     //! Patrz: interface::data_parse()
     int data_parse(ict::buffer::interface & buffer) {
         //if (buffer.testOut(value)){
@@ -208,18 +253,22 @@ public:
 };
 class string_string_t:public string<string_string_type>{
 public:
+    CONSTRUCTORS(string_string_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_string);}
 };
 using string_t = string_string_t;
 class string_wstring_t:public string<string_wstring_type>{
 public:
+    CONSTRUCTORS(string_wstring_t)
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_wstring);}
 };
 using wstring_t = string_wstring_t;
 class string_bytes_t:public string<string_bytes_type>{
 public:
+    string_bytes_t(){}
+    string_bytes_t(const string_bytes_t & input){value=input.value;}
     //! Patrz: interface::data_getType()
     data_t data_getType() const {return(data_string_bytes);}
 };
@@ -230,6 +279,8 @@ public:
     data_t data_getType() const {return(data_string_stream);}
 };
 using stream_t = string_stream_t;
+//===========================================
+#undef CONSTRUCTORS
 //===========================================
 } }
 //===========================================
