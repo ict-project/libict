@@ -73,14 +73,6 @@ public:
     const interface & data_getValue(const std::size_t & index) const {
         return(array_t::at(index));
     }
-    //! Patrz: interface::data_getFront()
-    virtual interface & data_getFront() {
-        return(array_t::front());
-    }
-    //! Patrz: interface::data_getBack()
-    virtual interface & data_getBack() {
-        return(array_t::back());
-    }
 };
 //===========================================
 template<typename T, std::size_t N>

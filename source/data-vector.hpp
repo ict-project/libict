@@ -106,14 +106,6 @@ public:
     const interface & data_getValue(const std::size_t & index) const {
         return(vector_t::at(index));
     }
-    //! Patrz: interface::data_getFront()
-    virtual interface & data_getFront() {
-        return(vector_t::front());
-    }
-    //! Patrz: interface::data_getBack()
-    virtual interface & data_getBack() {
-        return(vector_t::back());
-    }
 };
 //===========================================
 template<typename T,typename A=std::allocator<T>>

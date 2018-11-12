@@ -151,14 +151,6 @@ public:
     const interface & data_getValue(const std::size_t & index) const {
         return(data_getValue_priv<0,Types...>(index));
     }
-    //! Patrz: interface::data_getFront()
-    virtual interface & data_getFront() {
-        return(data_getValue(0));
-    }
-    //! Patrz: interface::data_getBack()
-    virtual interface & data_getBack() {
-        return(data_getValue(std::tuple_size<tuple_t>::value-1));
-    }
 };
 //===========================================
 template< class... Types >

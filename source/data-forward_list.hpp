@@ -85,14 +85,6 @@ public:
         }
         throw std::range_error("No value!");
     }
-    //! Patrz: interface::data_getFront()
-    virtual interface & data_getFront() {
-        return(forward_list_t::front());
-    }
-    //! Patrz: interface::data_getBack()
-    virtual interface & data_getBack() {
-        return(data_getValue(data_getSize()));
-    }
 };
 //===========================================
 template<typename T,typename A=std::allocator<T>>

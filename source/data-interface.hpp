@@ -570,20 +570,6 @@ public:
     //! 
     virtual interface & data_getValue(const std::size_t & index) {return(*this);}
     virtual const interface & data_getValue(const std::size_t & index) const {return(*this);}
-    //! 
-    //! @brief Zwraca interfejs pierwszego elementu.
-    //! 
-    //! @return interface& 
-    //!
-    virtual interface & data_getFront() {return(data_getValue(0));}
-    virtual const interface & data_getFront() const {return(data_getValue(0));}
-    //! 
-    //! @brief Zwraca interfejs ostatniego elementu.
-    //! 
-    //! @return interface& 
-    //!
-    virtual interface & data_getBack() {return(data_getValue(data_getSize()-1));}
-    virtual const interface & data_getBack() const {return(data_getValue(data_getSize()-1));}
 };
 class simple_interface: public interface{
 };

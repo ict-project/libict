@@ -75,14 +75,6 @@ public:
     const interface & data_getValue(const std::size_t & index) const {
         return(deque_t::at(index));
     }
-    //! Patrz: interface::data_getFront()
-    virtual interface & data_getFront() {
-        return(deque_t::front());
-    }
-    //! Patrz: interface::data_getBack()
-    virtual interface & data_getBack() {
-        return(deque_t::back());
-    }
 };
 //===========================================
 template<typename T,typename A=std::allocator<T>>
