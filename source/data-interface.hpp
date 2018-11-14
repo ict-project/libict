@@ -125,7 +125,7 @@ private:
         typedef iterator_template<I> self_type;
         typedef std::forward_iterator_tag iterator_category;
         typedef int difference_type;
-        typedef std::function<I(I)> streamer_factory;
+        typedef std::function<I(I)> proxy_factory;
     private:
         //! Wzorzec elementu stosu iteratora.
         template<class T> class stack_item_t: public comparable<stack_item_t<T>> {
@@ -143,8 +143,8 @@ private:
             //! Wskaźnik do obiektu.
             T ptr;
         };
-        mutable std::shared_ptr<typename std::remove_pointer<I>::type> streamer;
-        mutable std::map<tags,streamer_factory> streamer_map;
+        mutable std::shared_ptr<typename std::remove_pointer<I>::type> proxy;
+        mutable std::map<tags,proxy_factory> proxy_map;
         bool reverse_value;
         std::stack<stack_item_t<I>> stack;
         tags tag_vector;
@@ -170,28 +170,28 @@ private:
         iterator_template(bool reverse=false):reverse_value(reverse){
         }
         //! 
-        //! @brief Dodaje nową fabrykę streamerów
+        //! @brief Dodaje nową fabrykę proxy
         //! 
-        //! @param tag Tag, przy którym streamer jest tworzony.
-        //! @param factory Fabryka streamerów.
+        //! @param tag Tag, przy którym proxy jest tworzony.
+        //! @param factory Fabryka proxy.
         //! 
-        void streamer_insert(const tags & tag,streamer_factory factory){
-            streamer_erase(tag);
-            streamer_map[tag]=factory;
+        void proxy_insert(const tags & tag,proxy_factory factory){
+            proxy_erase(tag);
+            proxy_map[tag]=factory;
         }
         //! 
-        //! @brief Usuwa fabrykę streamerów.
+        //! @brief Usuwa fabrykę proxy.
         //! 
-        //! @param tag  Tag, przy którym streamer jest tworzony.
+        //! @param tag  Tag, przy którym proxy jest tworzony.
         //! 
-        void streamer_erase(const tags & tag){
-            if (streamer_map.count(tag)) streamer_map.erase(tag);
+        void proxy_erase(const tags & tag){
+            if (proxy_map.count(tag)) proxy_map.erase(tag);
         }
         //! 
-        //! @brief Czyści fabryki streamerów.
+        //! @brief Czyści fabryki proxy.
         //! 
-        void streamer_clear(){
-            streamer_map.clear();
+        void proxy_clear(){
+            proxy_map.clear();
         }
         //! 
         //! @brief Zwraca wskaźnik aktualnego obiektu.
@@ -200,12 +200,12 @@ private:
         //! 
         pointer ptr() const {
             if (stack.empty()) throw std::range_error("No value [1]!");
-            if (!streamer) //Jeśli streamer pusty
-                if (streamer_map.size()) //Jeśli są fabryki streamerów
-                    if (streamer_map.count(tag_vector)){ //Jeśli jest własciwa fabryka streamerów
-                        streamer.reset(streamer_map[tag_vector](stack.top().ptr));
+            if (!proxy) //Jeśli proxy pusty
+                if (proxy_map.size()) //Jeśli są fabryki proxy
+                    if (proxy_map.count(tag_vector)){ //Jeśli jest własciwa fabryka proxy
+                        proxy.reset(proxy_map[tag_vector](stack.top().ptr));
                     }
-            if (streamer) return(streamer.get());
+            if (proxy) return(proxy.get());
             return(stack.top().ptr);
         }
         pointer operator->() const {
@@ -310,19 +310,19 @@ private:
             return(0);
         }
         void go(){
-            bool streamer_present(streamer);
-            if (!streamer_present) //Jeśli streamer pusty
-                if (streamer_map.size()) //Jeśli są fabryki streamerów
-                    if (streamer_map.count(tag_vector)){ //Jeśli jest własciwa fabryka streamerów
-                        streamer_present=true;
+            bool proxy_present(proxy);
+            if (!proxy_present) //Jeśli proxy pusty
+                if (proxy_map.size()) //Jeśli są fabryki proxy
+                    if (proxy_map.count(tag_vector)){ //Jeśli jest własciwa fabryka proxy
+                        proxy_present=true;
                     }
             while(!stack.empty()){
                 stack_item_t<I> & item(stack.top());
                 data_t type=item.ptr->data_getType();
-                if (streamer_present) {//Jeśli jest streamer
-                    streamer.reset();//Usuń streamer
+                if (proxy_present) {//Jeśli jest proxy
+                    proxy.reset();//Usuń proxy
                     pop();//Zdejmij element
-                    streamer_present=false;
+                    proxy_present=false;
                 } else if (complex_type(type)){//Typy złożone
                     std::size_t max=item.ptr->data_getSize();
                     item.step++;//Inkrementacja kroku
