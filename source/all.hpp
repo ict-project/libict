@@ -10,6 +10,7 @@
 #include "data-interface.hpp"
 #include "data-map.hpp"
 #include "data-object.hpp"
+#include "data-pair.hpp"
 #include "data-simple.hpp"
 #include "data-tuple.hpp"
 #include "data-types.hpp"

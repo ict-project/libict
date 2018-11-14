@@ -1,5 +1,5 @@
 //! @file
-//! @brief Data types module - Source file.
+//! @brief Data pair module - Source file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
 //! @date 2012-2018
@@ -34,72 +34,20 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************************************/
 //============================================
-#include "data-types.hpp"
-#include <map>
+#include "data-pair.hpp"
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
+#include "data-simple.hpp"
 #endif
 //============================================
 namespace ict { namespace data {
 //============================================
-bool complex_type(data_t type){
-  return((type&ctype__mask)==ctype_complex);
-}
-bool simple_type(data_t type){
-  return(!complex_type(type));
-}
-const std::string & type_name(data_t type){
-  static const std::string unknown("unknown");
-  static const std::map<data_t,std::string> map={
-    #define map_item(name) {name,#name}
-    map_item(data_null),
-    map_item(data_bool),
-    map_item(data_number_s_char),
-    map_item(data_number_ss_int),
-    map_item(data_number_s_int),
-    map_item(data_number_sl_int),
-    map_item(data_number_sll_int),
-    map_item(data_number_u_char),
-    map_item(data_number_us_int),
-    map_item(data_number_u_int),
-    map_item(data_number_ul_int),
-    map_item(data_number_ull_int),
-    map_item(data_number_float),
-    map_item(data_number_double),
-    map_item(data_number_l_double),
-    map_item(data_string_string),
-    map_item(data_string_wstring),
-    map_item(data_string_bytes),
-    map_item(data_string_stream),
-    map_item(data_object_object),
-    map_item(data_array_array),
-    map_item(data_array_deque),
-    map_item(data_array_forward_list),
-    map_item(data_array_list),
-    map_item(data_array_map),
-    map_item(data_array_multimap),
-    map_item(data_array_queue),
-    map_item(data_array_priority_queue),
-    map_item(data_array_set),
-    map_item(data_array_multiset),
-    map_item(data_array_stack),
-    map_item(data_array_unordered_map),
-    map_item(data_array_unordered_multimap),
-    map_item(data_array_unordered_set),
-    map_item(data_array_unordered_multiset),
-    map_item(data_array_vector),
-    map_item(data_array_tuple),
-    map_item(data_array_pair),
-    #undef map_item
-  };
-  if (map.count(type)) return(map.at(type));
-  return(unknown);
-}
+
 //===========================================
 } }
 //===========================================
 #ifdef ENABLE_TESTING
-
+static ict::data::pair<ict::data::ul_int_t,ict::data::string_t> example;
 #endif
 //===========================================

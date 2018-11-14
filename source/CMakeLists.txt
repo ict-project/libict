@@ -18,8 +18,8 @@ set(CMAKE_SOURCE_FILES
   data-simple.cpp data-vector.cpp
   data-object.cpp data-array.cpp
   data-deque.cpp data-forward_list.cpp 
-  data-tuple.cpp data-map.cpp
-  data-info.cpp 
+  data-tuple.cpp data-pair.cpp
+  data-map.cpp data-info.cpp 
   utf8-robot.cpp
 )
 
