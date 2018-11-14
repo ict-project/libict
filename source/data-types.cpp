@@ -96,6 +96,15 @@ const std::string & type_name(data_t type){
   if (map.count(type)) return(map.at(type));
   return(unknown);
 }
+json_t get_json_type(const data_t & type){
+  return((json_t)(type&json__mask));
+}
+ctype_t get_ctype_type(const data_t & type){
+  return((ctype_t)(type&ctype__mask));
+}
+complex_t get_complex_type(const data_t & type){
+  return((complex_t)(type&complex__mask));
+}
 //===========================================
 } }
 //===========================================

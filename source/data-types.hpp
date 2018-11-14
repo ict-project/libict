@@ -43,6 +43,8 @@ namespace ict { namespace data {
 //===========================================
 //! Typ danych JSON
 enum json_t{
+    json__reserved=0x0,
+    //=======================    
     json_null=0x1<<((2*8)-4),
     json_bool=0x2<<((2*8)-4),
     json_number=0x3<<((2*8)-4),
@@ -54,6 +56,8 @@ enum json_t{
 };
 //! Typ danych C
 enum ctype_t{
+    ctype__reserved=0x0,
+    //=======================    
     ctype_sint=0x1<<((2*8)-4-4),
     ctype_uint=0x2<<((2*8)-4-4),
     ctype_float=0x3<<((2*8)-4-4),
@@ -64,6 +68,8 @@ enum ctype_t{
 };
 //! Typ danych złożonych (np. kontenerów)
 enum complex_t{
+    complex__reserved=0x0,
+    //=======================
     complex_object=0x1,
     complex_array=0x2,
     complex_deque=0x3,
@@ -170,6 +176,27 @@ bool simple_type(data_t type);
 //! @return Nazwa.
 //! 
 const std::string & type_name(data_t type);
+//! 
+//! @brief Zwraca typ JSON
+//! 
+//! @param type 
+//! @return json_t 
+//! 
+json_t get_json_type(const data_t & type);
+//! 
+//! @brief Zwraca typ C
+//! 
+//! @param type 
+//! @return ctype_t 
+//! 
+ctype_t get_ctype_type(const data_t & type);
+//! 
+//! @brief Zwraca typ złożony
+//! 
+//! @param type 
+//! @return complex_t 
+//! 
+complex_t get_complex_type(const data_t & type);
 //===========================================
 } }
 //===========================================
