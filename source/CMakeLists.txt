@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(Threads)
 
+add_custom_command(OUTPUT all.hpp PRE_BUILD COMMAND ./all.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(CMAKE_SOURCE_FILES 
   utf8.cpp options.cpp base64.cpp 
   time.cpp os.cpp logger.cpp random.cpp 
@@ -29,7 +31,7 @@ add_library(ict-shared SHARED ${CMAKE_SOURCE_FILES})
 target_link_libraries(ict-shared ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(ict-shared  PROPERTIES OUTPUT_NAME ict)
 
-add_executable(libict-test test.cpp ${CMAKE_SOURCE_FILES})
+add_executable(libict-test all.hpp test.cpp ${CMAKE_SOURCE_FILES})
 target_link_libraries(libict-test ${CMAKE_THREAD_LIBS_INIT})
 target_compile_definitions(libict-test PUBLIC -DENABLE_TESTING)
 
@@ -52,13 +54,13 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/git_version.h @ONLY)
 
+file(GLOB HEADER_LIST . *.hpp)
+
 install(TARGETS ict-static ict-shared DESTINATION lib COMPONENT libraries)
-install(FILES 
-  utf8.hpp options.hpp base64.hpp 
-  time.hpp os.hpp logger.hpp random.hpp 
-  register.hpp daemon.hpp pool.hpp json-object.hpp
-  all.hpp 
-DESTINATION include/libict COMPONENT headers)
+install(
+  FILES ${HEADER_LIST}
+  DESTINATION include/libict COMPONENT headers
+)
 ################################################################
 enable_testing()
 
