@@ -41,7 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include "data-interface.hpp"
 //============================================
-std::map<int,int> t;
 namespace ict { namespace data {
 //===========================================
 #define CONSTRUCTORS(name,body)\
