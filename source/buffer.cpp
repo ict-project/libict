@@ -43,6 +43,69 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace buffer {
 //============================================
+void size_type::clear(){
+    is_ready=true;
+    bytes.clear();
+    bytes.emplace_back();
+    bytes.back()=0x0;
+    size=0x0;
+}
+size_type & size_type::operator()(const std::size_t & input){
+    std::size_t s(input);
+    bytes.clear();
+    do {
+        bytes.emplace_back();
+        bytes.back()=(s&mask)|(~mask);
+        s>>=0x7;
+    } while (s);
+    bytes.back()=bytes.back()&mask;
+    size=input;
+    is_ready=true;
+    return(*this);
+}
+size_type & size_type::operator()(const byte_t & input){
+    if (is_ready){
+        is_ready=false;
+        bytes.clear();
+        size=0x0;
+    }
+    bytes.emplace_back();
+    bytes.back()=input;
+    if (!(input&(~mask))) is_ready=true;
+    if (bytes.size()>sizeof(size)) is_ready=true;
+    if (is_ready) for (byte_vector_t::const_reverse_iterator it=bytes.crbegin();it!=bytes.crend();++it){
+      size<<=0x7;
+      size|=((*it)&mask);
+    }
+    return(*this);
+}
+//===========================================
+bool byte_interface::testInput(const size_type & input) const{
+  return(getFreeSpace()<input.getBytes().size());
+}
+bool byte_interface::testOutput(const size_type & output) const{
+  try{
+    getArraySize();
+  }catch(...){
+    return(true);
+  }
+  return(false);
+}
+void byte_interface::dataIn(const size_type & input,bool test){
+  const byte_vector_t & buffer(input.getBytes());
+  if (test) if (testInput(input)) throw std::range_error("Input to large for ict::buffer::interface [3]!");
+  for (const byte_t b : buffer) {
+    dataIn(b);
+  }
+}
+void byte_interface::dataOut(size_type & output,bool test){
+  byte_t b;
+  if (test) if (testOutput(output)) throw std::range_error("Output to small for ict::buffer::interface [3]!");
+  do {
+    dataOut(b,false);
+  } while (!output(b).isReady());
+}
+//===========================================
 const std::size_t max_size(0xffffffffffffffff);
 void basic::byteIn(const byte_t & byte){
     q.push_back(byte);
@@ -51,12 +114,12 @@ void basic::byteOut(byte_t & byte){
     byte=q.front();
     q.pop_front();
 }
-basic::interface::array_size_t basic::getArraySize() const {
-  basic::interface::array_size_t size=0;
-  byte_t* ptr=(byte_t*)(&size);
-  if (q.size()<sizeof(size)) return(size);
-  for (std::size_t k=0;k<sizeof(size);k++) ptr[k]=q[k];
-  return(size);
+size_type basic::getArraySize() const {
+  size_type s;
+  for (const byte_t & b : q){
+    if (s(b).isReady()) return(s);
+  }
+  throw new std::exception;
 }
 basic::basic():max(max_size){}
 basic::basic(const std::size_t & maxSize):max((maxSize<max_size)?maxSize:max_size){}
@@ -67,8 +130,44 @@ std::size_t basic::getSize() const {return(q.size());}
 } }
 //===========================================
 #ifdef ENABLE_TESTING
+struct test_struct{
+    ict::buffer::byte_vector_t bytes;
+    std::size_t size;
+};
 template <typename I=int> void random(I & output){
   output=ict::random::randomInteger(0,(0x1<<15));
+}
+REGISTER_TEST(buffer,tc1){
+  try{
+    static const std::vector<test_struct> tv={
+      {{0b0},                                                  0b0},
+      {{0b1},                                                  0b1},
+      {{0b1111111},                                      0b1111111},
+      {{0b11111111,0b01111111},                   0b11111111111111},
+      {{0b10000001,0b01000000},                   0b10000000000001},
+      {{0b10000001,0b11000000,0b01100000}, 0b110000010000000000001},
+    };
+    for (const auto & t : tv){
+      ict::buffer::size_type left,right;
+      for (const auto & i : t.bytes) left(i);
+      right(t.size);
+      std::cout<<"left="<<left.getSize()<<" ("<<left.getBytes().size()<<")"<<std::endl;
+      std::cout<<"right="<<right.getSize()<<" ("<<right.getBytes().size()<<")"<<std::endl;
+      if (left.getSize()!=right.getSize()) throw std::range_error("left.getSize() różni się od right.getSize()!");
+      if (left.getBytes().size()!=right.getBytes().size()) throw std::range_error("left.getBytes().size() różni się od right.getBytes().size()!");
+      for (std::size_t k=0;k<left.getBytes().size();k++)
+        {
+          std::cout<<"k="<<k<<std::endl;
+          std::cout<<"left="<<(int)left.getBytes().at(k)<<std::endl;
+          std::cout<<"right="<<(int)right.getBytes().at(k)<<std::endl;
+          if (left.getBytes().at(k)!=right.getBytes().at(k)) throw std::range_error("left.getBytes().at(k) różni się od right.getBytes().at(k)!");
+        }
+    }
+  }catch(const std::exception & e){
+    std::cerr<<"ERROR: "<<e.what()<<"!"<<std::endl;
+    return(1);
+  }
+  return(0);
 }
 template <typename I=int> void test(const I & input,I & output,ict::buffer::basic & buffer){
   buffer<<input;
@@ -77,7 +176,7 @@ template <typename I=int> void test(const I & input,I & output,ict::buffer::basi
   std::cout<<"output="<<output<<std::endl;
   if (input!=output) throw std::range_error("input różni się od output!");
 }
-REGISTER_TEST(buffer,tc1){
+REGISTER_TEST(buffer,tc2){
   try{
     ict::buffer::basic b; 
     signed char in1,out1;
@@ -95,8 +194,9 @@ REGISTER_TEST(buffer,tc1){
     long double in13,out13;
     bool in14,out14;
     std::string in15,out15;
-    std::wstring in16,out16;
-    ict::buffer::byte_vector_t in17,out17;
+    std::string in16,out16;
+    std::wstring in17,out17;
+    std::wstring in18,out18;
     random(in1);
     random(in2);
     random(in3);
@@ -111,7 +211,8 @@ REGISTER_TEST(buffer,tc1){
     random(in12);
     random(in13);
     random(in14);
-    in15=ict::random::randomString(100);
+    in15=ict::random::randomString(10);
+    in16=ict::random::randomString(10000);
     test(in1,out1,b);
     test(in2,out2,b);
     test(in3,out3,b);
@@ -126,8 +227,8 @@ REGISTER_TEST(buffer,tc1){
     test(in12,out12,b);
     test(in13,out13,b);
     test(in14,out14,b);
-    out15.resize(in15.size());
     test(in15,out15,b);
+    test(in16,out16,b);
   }catch(const std::exception & e){
     std::cerr<<"ERROR: "<<e.what()<<"!"<<std::endl;
     return(1);
