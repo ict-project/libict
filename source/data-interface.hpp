@@ -2,10 +2,10 @@
 //! @brief Data interface module - Header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
-//! @date 2012-2018
+//! @date 2012-2019
 //! @copyright ICT-Project Mariusz Ornowski (ict-project.pl)
 /* **************************************************************
-Copyright (c) 2012-2018, ICT-Project Mariusz Ornowski (ict-project.pl)
+Copyright (c) 2012-2019, ICT-Project Mariusz Ornowski (ict-project.pl)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _DATA_INTERFACE_HEADER
 //============================================
 #include <map>
+#include <vector>
 #include <stack>
 #include <functional>
 #include <memory>
@@ -85,6 +86,12 @@ class interface;
 //! Porównwalna wersja std::vector<std::string>
 class tags : public std::vector<std::string>,public comparable<tags>{
 private:
+    //! 
+    //! @brief Porównuje tagi. UWAGA: Puste ciągi znaków są traktowane jako dowolne ciągi (są równe dowolnym ciągom znaków).
+    //! 
+    //! @param rhs Patrz comparable::compare().
+    //! @return Patrz comparable::compare().
+    //! 
     int compare(const tags & rhs) const {
         if (size()<rhs.size()) return(-1);
         if (size()>rhs.size()) return(1);
@@ -98,17 +105,35 @@ private:
     }
 public:
     //! 
-    //! @brief Zwraca string połączonych za pomocą kropki ('.') wartosći std::string.
+    //! @brief Zwraca string połączonych za pomocą łącznika (domyślnie '.') wartosći std::string.
     //! 
+    //! @param delimiter Łącznik.
+    //!
     //! @return std::string Połączony ciąg znaków.
     //! 
-    std::string string() const {
+    std::string string(const char & delimiter='.') const {
         std::string out;
         for (std::size_t k=0;k<size();k++) {
-            if (k) out+=".";
+            if (k) out+=delimiter;
             out+=at(k);
         }
         return(out);
+    }
+    //! 
+    //! @brief Ustawia wartość na podstawie string połączonych za pomocą łącznika (domyślnie '.').
+    //! 
+    //! @param input Połączony ciąg znaków.
+    //! @param delimiter Łącznik.
+    //!
+    void string(const std::string & input,const char & delimiter='.'){
+        std::size_t last=0;
+        clear();
+        for (std::size_t k=0;k<=input.size();k++){
+            if ((input[k]==delimiter)||(k==input.size())) {
+                push_back(input.substr(last,k-last));
+                last=k+1;
+            }
+        }
     }
 };
 //! Podstawowy interfejs danych.
@@ -517,13 +542,13 @@ public:
     //! 
     //! @brief Funkcja walidująca obiekt.
     //! 
-    //! @param error String do zapisywania opisu ewentualnych błędów.
+    //! @param error Lista stringów do zapisywania opisu ewentualnych błędów.
     //! @return Wynik parsowania - wartości:
     //!  @li -1 - Wystąpił błąd podczas walidacji.
     //!  @li 0 - Walidowanie zakończone - brak błędów.
     //!  @li 1 - Walidowanie zakończone - wsytąpiły błędy (opis w error).
     //!     
-    virtual int data_validate(std::string & error) const {return(0);}
+    virtual int data_validate(std::vector<std::string> & error) const {return(0);}
     //! 
     //! @brief Resetowanie obiektu. Ewentualnie jednego element obiektu.
     //! @param tag Wskazanie tagu elementu do resetowania (gdy pusty cały obiekt jest resetowany).

@@ -19,7 +19,9 @@ set(CMAKE_SOURCE_FILES
   data-object.cpp data-array.cpp
   data-deque.cpp data-forward_list.cpp 
   data-tuple.cpp data-pair.cpp
-  data-map.cpp data-info.cpp 
+  data-map.cpp 
+  data-info.cpp 
+  data-proxy.cpp data-proxy-binary.cpp
   utf8-robot.cpp
 )
 
