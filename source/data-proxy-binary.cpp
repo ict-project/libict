@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 #ifdef ENABLE_TESTING
 #include "test.hpp"
+#include "data-info.hpp"
+#include <unistd.h>
 #endif
 //============================================
 namespace ict { namespace data { namespace proxy {
@@ -87,10 +89,42 @@ bool test_number_size(ict::buffer::interface & buffer,const ict::data::data_t & 
     return(false);
 }
 const std::size_t binary::max_chunk_size(113);
-const unsigned char binary::the_first('>');
-const unsigned char binary::the_middle('|');
-const unsigned char binary::the_last('<');
-
+const unsigned char binary::the_next('>');
+const unsigned char binary::the_end('<');
+const ict::data::interface::data_iterator::proxy_factory::creator<binary> binary::factory;
+const ict::data::interface::data_const_iterator::proxy_factory::creator<binary> binary::cfactory;
+int binary::parse_string(ict::buffer::interface & buffer,ict::data::interface & iface_in){
+    if (!parse_buffer) {
+        parse_buffer.reset(new ict::buffer::basic);
+        parse_chunk.reset(new std::string);
+    }
+    if (buffer.testOut(*parse_chunk)){
+        buffer>>(*parse_chunk);//
+    } else {
+        return(1);//Czekaj
+    }
+    (*parse_buffer)<<(*parse_chunk);
+    iface_in.data_parse(*parse_buffer);
+    parse_buffer.reset(nullptr);
+    parse_chunk.reset(nullptr);
+    return(0);//Koniec
+}
+int binary::serialize_string(ict::buffer::interface & buffer,const ict::data::interface & iface_in) const{
+    if (!serialize_buffer){
+        serialize_buffer.reset(new ict::buffer::basic);
+        serialize_chunk.reset(new std::string);
+        iface_in.data_serialize(*serialize_buffer);
+    }
+    (*serialize_buffer)>>(*serialize_chunk);
+    if (buffer.testIn(*serialize_chunk)){
+        buffer<<(*serialize_chunk);
+    } else {
+        return(1);//Czekaj
+    }
+    serialize_buffer.reset(nullptr);
+    serialize_chunk.reset(nullptr);
+    return(0);//Koniec
+}
 int binary::parse_stream(ict::buffer::interface & buffer,ict::data::interface & iface_in){
     if (!parse_buffer) {
         parse_buffer.reset(new ict::buffer::basic);
@@ -159,29 +193,25 @@ int binary::serialize_stream(ict::buffer::interface & buffer,const ict::data::in
     return(0);//Koniec
 }
 int binary::parse_simple(ict::buffer::interface & buffer,ict::data::interface & iface_in,const ict::data::data_t & type_in){
-    switch (type_in){
+    switch (type_in) {
         case data_string_string:
         case data_string_wstring:
-        case data_string_bytes://Typy string.
-        case data_string_stream://Typ stream.
-            return(parse_stream(buffer,iface_in));
-        default:break;
+        case data_string_bytes:return(parse_string(buffer,iface_in));
+        case data_string_stream: return(parse_stream(buffer,iface_in));
+        default: break;
     }
-    //Pozostałe typy.
     if (test_number_size(buffer,type_in,false))//Jeśli jest w buforze.
         return(iface_in.data_parse(buffer));//Pobierz z bufora i zakończ.
     return(1);//Czekaj
 }
 int binary::serialize_simple(ict::buffer::interface & buffer,const ict::data::interface & iface_in,const ict::data::data_t & type_in) const{
-    switch (type_in){
+    switch (type_in) {
         case data_string_string:
         case data_string_wstring:
-        case data_string_bytes://Typy string.
-        case data_string_stream://Typ stream.
-            return(serialize_stream(buffer,iface_in));
-        default:break;
+        case data_string_bytes:return(serialize_string(buffer,iface_in));
+        case data_string_stream:return(serialize_stream(buffer,iface_in));
+        default: break;
     }
-    //Pozostałe typy.
     if (test_number_size(buffer,type_in,true))//Jeśli jest w buforze.
         return(iface_in.data_serialize(buffer));//Zapisz do bufora i zakończ.
     return(1);//Czekaj
@@ -208,10 +238,7 @@ int binary::data_parse(ict::buffer::interface & buffer){
             unsigned char tmp;
             if (buffer.testOut(tmp)){//Jeśli jest.
                 buffer>>tmp;//Pobierz.
-                if (tmp==the_last){//Jeśli to jest ostatni.
-                    break;//Koniec iteracji.
-                } else if ((tmp!=the_first)&&(tmp!=the_middle)) { //Jeśli inna wartość.
-                    rv=-1;//Błąd parsowania
+                if (tmp==the_end){//Jeśli to jest ostatni.
                     break;//Koniec iteracji.
                 } else { //Jeśli kolejny element.
                     if (ict::data::get_json_type(t)==ict::data::json_object){//Jeśli potrzebny jest tag.
@@ -255,22 +282,16 @@ int binary::data_serialize(ict::buffer::interface & buffer) const {
                 return(rv);//Czekaj
             }
         } else {//Jeśli typ złożony.
-            if (serialize_it->first()){//Jeśli pierwszy.
-                if (buffer.testIn(the_first)){//Jeśli się zmieści.
-                    buffer<<the_first;//Wstaw.
+            if (serialize_it->last()){//Jeśli ostatni.
+                if (buffer.testIn(the_end)){//Jeśli się zmieści.
+                    buffer<<the_end;//Wstaw.
                 } else {
                     return(1);//Czekaj
                 }
-            } else if (serialize_it->last()){//Jeśli ostatni.
-                if (buffer.testIn(the_last)){//Jeśli się zmieści.
-                    buffer<<the_last;//Wstaw.
-                } else {
-                    return(1);//Czekaj
-                }
-            } else {//Jeśli nie pierwszy i ostatni
+            } else {
                 if (!serialize_tag){//Jeśli nie istnieje tag do serializowania
-                    if (buffer.testIn(the_middle)){//Jeśli się zmieści.
-                        buffer<<the_middle;//Wstaw.
+                    if (buffer.testIn(the_next)){//Jeśli się zmieści.
+                        buffer<<the_next;//Wstaw.
                     } else {
                         return(1);//Czekaj
                     }
@@ -297,6 +318,148 @@ int binary::data_serialize(ict::buffer::interface & buffer) const {
 } } }
 //===========================================
 #ifdef ENABLE_TESTING
-
+void test_proxy_data_in(ict::data::info & i){
+    {
+      double value=7.009;
+      ict::data::interface::data_setInfo(i,5,value);
+    }
+    {
+      bool value=false;
+      ict::data::interface::data_setInfo(i,1,value);
+    }
+    {
+      std::string value="7.009";
+      ict::data::interface::data_setInfo(i,6,value);
+    }
+    {
+      unsigned int value=975;
+      ict_data_pushFront(i,info_children);
+      i.info_children().emplace_back();
+      ict_data_pushFront(i.info_children()[0],name);
+      i.info_children[0][0].name[0]()="name";
+      ict_data_pushFront(i.info_children()[0],value);
+      ict::data::interface::data_setInfo(i.info_children()[0].value(),23,value);
+    }
+}
+void test_proxy_data_in(ict::data::string_string_t & s){
+    s()="test";
+}
+void test_proxy_data_in(ict::data::number_double_t & n){
+    n()=123.45;
+}
+int test_proxy_data_out(ict::data::info & i){
+    return(0);
+}
+int test_proxy_data_out(ict::data::string_string_t & s){
+    if (s()=="test") return(0);
+    std::cerr<<"ERROR: 'test'!='"<<s()<<"' !"<<std::endl;
+    return(1);
+}
+int test_proxy_data_out(ict::data::number_double_t & n){
+    if (n()==123.45) return(0);
+    std::cerr<<"ERROR: 123.45!="<<n()<<" !"<<std::endl;
+    return(1);
+}
+template <class T> 
+void test_proxy_data_in(T & t){
+}
+template <class T> 
+int test_proxy_data_out(T & t){
+    return(0);
+}
+template <class T> 
+int test_proxy(){
+  try{
+    int out;
+    T input;
+    T output;
+    ict::buffer::basic buffer;
+    ict::data::interface::data_const_iterator i_in=input.data_cbegin();
+    ict::data::interface::data_iterator i_out=output.data_begin();
+    test_proxy_data_in(input);
+    i_in.proxy_insert({},ict::data::proxy::binary::cfactory.ptr());
+    i_out.proxy_insert({},ict::data::proxy::binary::factory.ptr());
+    std::cout<<"Serialize..."<<std::endl;
+    for(out=1;0<out;){
+        out=i_in.ptr()->data_serialize(buffer);
+        std::cout<<out<<std::endl;
+        usleep(100000);
+    }
+    if (out<0) {
+        std::cerr<<"ERROR: Serialize error!"<<std::endl;
+        return(out);
+    }
+    std::cout<<"Parse..."<<std::endl;
+    for(out=1;0<out;){
+        out=i_out.ptr()->data_parse(buffer);
+        std::cout<<out<<std::endl;
+        usleep(100000);
+    }
+    if (out<0) {
+        std::cerr<<"ERROR: Parse error!"<<std::endl;
+        return(out);
+    }
+    out=test_proxy_data_out(output);
+    return(out);
+  }catch(const std::exception & e){
+    std::cerr<<"ERROR: "<<e.what()<<"!"<<std::endl;
+    return(1);
+  }
+  return(0);
+}
+REGISTER_TEST(data_proxy_binary,tc1){
+    return(test_proxy<ict::data::bool_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc2){
+    return(test_proxy<ict::data::number_s_char_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc3){
+    return(test_proxy<ict::data::number_ss_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc4){
+    return(test_proxy<ict::data::number_s_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc5){
+    return(test_proxy<ict::data::number_sl_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc6){
+    return(test_proxy<ict::data::number_sll_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc7){
+    return(test_proxy<ict::data::number_u_char_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc8){
+    return(test_proxy<ict::data::number_us_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc9){
+    return(test_proxy<ict::data::number_u_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc11){
+    return(test_proxy<ict::data::number_ul_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc12){
+    return(test_proxy<ict::data::number_ull_int_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc13){
+    return(test_proxy<ict::data::number_float_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc14){
+    return(test_proxy<ict::data::number_double_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc15){
+    return(test_proxy<ict::data::number_l_double_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc16){
+    return(test_proxy<ict::data::string_string_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc17){
+    return(test_proxy<ict::data::string_wstring_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc18){
+    return(test_proxy<ict::data::string_bytes_t>());
+}
+REGISTER_TEST(data_proxy_binary,tc19){
+    return(test_proxy<ict::data::info>());
+}
 #endif
 //===========================================

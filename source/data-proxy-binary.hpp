@@ -38,20 +38,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 #include "data-interface.hpp"
 #include "data-proxy.hpp"
+#include "factory.hpp"
 //============================================
 namespace ict { namespace data { namespace proxy {
 //===========================================
 //! Binarne proxy.
-class binary: public proxy_default,public proxy_factory<binary>{
+class binary: public proxy_default{
 private:
     //! Maksymalny rozmiar kawałka danych - serialize_stream()
     const static std::size_t max_chunk_size;
-    //! Znak pomiędzy elementami typu złożonego - data_parse() i data_serialize()
-    const static unsigned char the_first;
-    //! Znak pomiędzy elementami typu złożonego - data_parse() i data_serialize()
-    const static unsigned char the_middle;
-    //! Znak na koniec typu złożonego  - data_parse() i data_serialize() 
-    const static unsigned char the_last;
+    //! Znak przed elementenm typu złożonego - data_parse() i data_serialize()
+    const static unsigned char the_next;
+    //! Znak po elementamach typu złożonego - data_parse() i data_serialize()
+    const static unsigned char the_end;
     //! Iterator podczas parsowania - data_parse()
     mutable std::unique_ptr<ict::data::interface::data_iterator> parse_it;
     //! Iterator podczas serializowania - data_serialize()
@@ -60,8 +59,6 @@ private:
     mutable std::unique_ptr<std::string> parse_tag;
     //! Tag do serializowania - data_serialize()
     mutable std::unique_ptr<std::string> serialize_tag;
-    //! Wartość podczas parsowania i serializowania - parse_string() i serialize_string()
-    mutable std::unique_ptr<std::string> parse_value,serialize_value;
     //! Bufor podczas parsowania i serializowania - parse_stream() i serialize_stream()
     mutable std::unique_ptr<ict::buffer::basic> parse_buffer,serialize_buffer;
     //! Wartość podczas parsowania i serializowania - parse_stream() i serialize_stream()
@@ -69,11 +66,18 @@ private:
     //! Zwracana wartość podczas parsowania i serializowania - parse_stream() i serialize_stream()
     mutable int parse_rv[2],serialize_rv[2];
 
+
     int parse_stream(ict::buffer::interface & buffer,ict::data::interface & iface_in);
     int serialize_stream(ict::buffer::interface & buffer,const ict::data::interface & iface_in) const;
+    int parse_string(ict::buffer::interface & buffer,ict::data::interface & iface_in);
+    int serialize_string(ict::buffer::interface & buffer,const ict::data::interface & iface_in) const;
     int parse_simple(ict::buffer::interface & buffer,ict::data::interface & iface_in,const ict::data::data_t & type_in);
     int serialize_simple(ict::buffer::interface & buffer,const ict::data::interface & iface_in,const ict::data::data_t & type_in) const;
 public:
+    binary(interface * iface_in):proxy_default(iface_in){}
+    binary(const interface * iface_in):proxy_default(iface_in){}
+    static const ict::data::interface::data_iterator::proxy_factory::creator<binary> factory;
+    static const ict::data::interface::data_const_iterator::proxy_factory::creator<binary> cfactory;
     //! Patrz ict::data::interface::data_parse()
     int data_parse(ict::buffer::interface & buffer);
     //! Patrz ict::data::interface::data_serialize()

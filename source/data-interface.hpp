@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include "buffer.hpp"
 #include "data-types.hpp"
+#include "factory.hpp"
 //============================================
 namespace ict { namespace data {
 //===========================================
@@ -150,7 +151,7 @@ private:
         typedef iterator_template<I> self_type;
         typedef std::forward_iterator_tag iterator_category;
         typedef int difference_type;
-        typedef std::function<I(I)> proxy_factory;
+        typedef ict::factory::interface<typename std::remove_pointer<I>::type,I> proxy_factory;
     private:
         //! Wzorzec elementu stosu iteratora.
         template<class T> class stack_item_t: public comparable<stack_item_t<T>> {
@@ -169,7 +170,7 @@ private:
             T ptr;
         };
         mutable std::shared_ptr<typename std::remove_pointer<I>::type> proxy;
-        mutable std::map<tags,proxy_factory> proxy_map;
+        mutable std::map<tags,const proxy_factory*> proxy_map;
         bool reverse_value;
         std::stack<stack_item_t<I>> stack;
         tags tag_vector;
@@ -200,7 +201,7 @@ private:
         //! @param tag Tag, przy którym proxy jest tworzony.
         //! @param factory Fabryka proxy.
         //! 
-        void proxy_insert(const tags & tag,proxy_factory factory){
+        void proxy_insert(const tags & tag,const proxy_factory * factory){
             proxy_erase(tag);
             proxy_map[tag]=factory;
         }
@@ -227,9 +228,10 @@ private:
             if (stack.empty()) throw std::range_error("No value [1]!");
             if (!proxy) //Jeśli proxy pusty
                 if (proxy_map.size()) //Jeśli są fabryki proxy
-                    if (proxy_map.count(tag_vector)){ //Jeśli jest własciwa fabryka proxy
-                        proxy.reset(proxy_map[tag_vector](stack.top().ptr));
-                    }
+                    if (proxy_map.count(tag_vector)) //Jeśli jest własciwa fabryka proxy
+                        if (proxy_map.at(tag_vector)){//Jeśli nie jest nullem
+                            proxy.reset(proxy_map[tag_vector]->create(stack.top().ptr));
+                        }
             if (proxy) return(proxy.get());
             return(stack.top().ptr);
         }

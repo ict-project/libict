@@ -17,6 +17,7 @@
 #include "data-tuple.hpp"
 #include "data-types.hpp"
 #include "data-vector.hpp"
+#include "factory.hpp"
 #include "global.hpp"
 #include "json-object.hpp"
 #include "logger.hpp"

@@ -40,12 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //============================================
 namespace ict { namespace data { namespace proxy {
 //===========================================
-//! Wzorzec klasy z fabrykami proxy.
-template<class P> 
-struct proxy_factory {
-    static interface * factory(interface * iface){return(new P(iface));}
-    static const interface * factory(const interface * iface){return(new P(iface));}
-};
 //! Domyślne funkcje proxy.
 class proxy_default: public interface{
 protected:
