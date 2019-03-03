@@ -2,10 +2,10 @@
 //! @brief Option parser header file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
-//! @date 2012-2017
+//! @date 2012-2019
 //! @copyright ICT-Project Mariusz Ornowski (ict-project.pl)
 /* **************************************************************
-Copyright (c) 2012-2017, ICT-Project Mariusz Ornowski (ict-project.pl)
+Copyright (c) 2012-2019, ICT-Project Mariusz Ornowski (ict-project.pl)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -172,10 +172,11 @@ private:
     registerOption(id,shortOpt,l);
   }
   std::string getOptionDesc(optionId_t id);
-  #define _OPTIONS_(type,name) option_v_##name##_t  parseValue_##name(std::wstring & input,const dictionary_##name##_t * dictionary);
+  #define _OPTIONS_(type,name) option_v_##name##_t  parseValue_##name(const std::wstring & input,const dictionary_##name##_t * dictionary);
   #include "options.h.in"
   #undef _OPTIONS_
-  int parseValue(std::wstring & input);
+  int parseValue(const std::string & input);
+  int parseValue(const std::wstring & input);
   int parseShort(shortOption_t input);
   int parseShort(std::wstring & input);
   int parseLong(std::wstring & input);
@@ -206,7 +207,7 @@ public:
   //! 
   //! Zwraca zestaw opcji (o tym samym działaniu) na podstawie jednej długiej opcji.
   //!
-  //! @param longOpt Dłyga opcja do wyszukania.
+  //! @param longOpt Długa opcja do wyszukania.
   //! @return Zestaw opcji (pusty jeśli nie znaleziono).
   //! 
   std::string getOptionDesc(const longOption_t & longOpt);
@@ -311,6 +312,8 @@ public:
       otherId=optionConfig.size();
       registerConfig(otherId,&target);
     }
+  void setValueFromEnv(const std::string & name,const shortOption_t & option);
+  void setValueFromEnv(const std::string & name,const longOption_t & option);
   void registerConfig(int priority,config_t config);
   bool isOptPresent(const shortOption_t & shortOpt) noexcept;
   bool isOptPresent(const longOption_t & longOpt) noexcept;

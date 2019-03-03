@@ -125,7 +125,8 @@ std::vector<std::string> example_params;// Target for "-e" option.
 //=================================================
 OPTIONS_CONFIG(test1,1){
   if (config) {
-    parser.registerOpt(L'e',L"example",example_params);
+    parser.registerOpt(L'e',L"example",example_params);//It registers param 'example'
+    parser.setValueFromEnv("example_env",L'e');//Writes value to param 'example' from env variable called 'example_env'
   } else {
     parser.errors<<" "<<parser.getOptionDesc(L'e')<<" - example usage."<<std::endl;
   }

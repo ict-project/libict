@@ -2,10 +2,10 @@
 //! @brief Options parser module - Source file.
 //! @author Mariusz Ornowski (mariusz.ornowski@ict-project.pl)
 //! @version 1.0
-//! @date 2012-2017
+//! @date 2012-2019
 //! @copyright ICT-Project Mariusz Ornowski (ict-project.pl)
 /* **************************************************************
-Copyright (c) 2012-2017, ICT-Project Mariusz Ornowski (ict-project.pl)
+Copyright (c) 2012-2019, ICT-Project Mariusz Ornowski (ict-project.pl)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -108,50 +108,50 @@ std::string Parser::getOptionDesc(optionId_t id){
   }
   return(ict::utf8::get(output));
 }
-option_v_string_t Parser::parseValue_string(std::wstring & input,const dictionary_string_t * dictionary){
+option_v_string_t Parser::parseValue_string(const std::wstring & input,const dictionary_string_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   return(ict::utf8::get(input));
 }
-option_v_wstring_t Parser::parseValue_wstring(std::wstring & input,const dictionary_wstring_t * dictionary){
+option_v_wstring_t Parser::parseValue_wstring(const std::wstring & input,const dictionary_wstring_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   return(input);
 }
-option_v_Integer_t Parser::parseValue_Integer(std::wstring & input,const dictionary_Integer_t * dictionary){
+option_v_Integer_t Parser::parseValue_Integer(const std::wstring & input,const dictionary_Integer_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_Integer_t output=std::stoi(input,0,0);
     return(output);
   }
 }
-option_v_lInteger_t Parser::parseValue_lInteger(std::wstring & input,const dictionary_lInteger_t * dictionary){
+option_v_lInteger_t Parser::parseValue_lInteger(const std::wstring & input,const dictionary_lInteger_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_lInteger_t output=std::stol(input,0,0);
     return(output);
   }
 }
-option_v_llInteger_t Parser::parseValue_llInteger(std::wstring & input,const dictionary_llInteger_t * dictionary){
+option_v_llInteger_t Parser::parseValue_llInteger(const std::wstring & input,const dictionary_llInteger_t * dictionary){
   if (dictionary) if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_llInteger_t output=std::stoll(input,0,0);
     return(output);
   }
 }
-option_v_Float_t Parser::parseValue_Float(std::wstring & input,const dictionary_Float_t * dictionary){
+option_v_Float_t Parser::parseValue_Float(const std::wstring & input,const dictionary_Float_t * dictionary){
   if (dictionary)  if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_Float_t output=std::stod(input);
     return(output);
   }
 }
-option_v_lFloat_t Parser::parseValue_lFloat(std::wstring & input,const dictionary_lFloat_t * dictionary){
+option_v_lFloat_t Parser::parseValue_lFloat(const std::wstring & input,const dictionary_lFloat_t * dictionary){
   if (dictionary)  if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_lFloat_t output=std::stold(input);
     return(output);
   }
 }
-option_v_bool_t Parser::parseValue_bool(std::wstring & input,const dictionary_bool_t * dictionary){
+option_v_bool_t Parser::parseValue_bool(const std::wstring & input,const dictionary_bool_t * dictionary){
   if (dictionary)  if (dictionary->count(input)) return(dictionary->at(input));
   {
     option_v_bool_t output;
@@ -194,7 +194,10 @@ option_v_bool_t Parser::parseValue_bool(std::wstring & input,const dictionary_bo
     return(output);
   }
 }
-int Parser::parseValue(std::wstring & input){
+int Parser::parseValue(const std::string & input){
+  return(parseValue(ict::utf8::get(input)));
+}
+int Parser::parseValue(const std::wstring & input){
   optionId_t id=currentId;
   currentId=-1;
   if (!optionConfig.count(id)) {
@@ -385,6 +388,16 @@ int Parser::parse(int argc_in,const char **argv_in) noexcept {
     return(-1);
   }
   return(0);
+}
+void Parser::setValueFromEnv(const std::string & name,const shortOption_t & option){
+  shortOption_t o(option);
+  char * value=std::getenv(name.c_str());
+  if (value) if (!parseShort(o)) parseValue(value);
+}
+void Parser::setValueFromEnv(const std::string & name,const longOption_t & option){
+  longOption_t o(option);
+  char * value=std::getenv(name.c_str());
+  if (value) if (!parseLong(o)) parseValue(value);
 }
 void Parser::registerConfig(int priority,config_t config){
   if (config) configList[priority].push_back(config);
